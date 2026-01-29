@@ -86,7 +86,9 @@ export async function POST(req: NextRequest) {
         
         if (messages.length > 0) {
           transcript = messages.join('\n');
-          console.log('[Vapi Webhook] Built transcript from messages, length:', transcript.length);
+          if (transcript) {
+            console.log('[Vapi Webhook] Built transcript from messages, length:', transcript.length);
+          }
         }
       }
       
