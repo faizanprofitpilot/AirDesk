@@ -23,7 +23,7 @@ const VAPI_API_KEY = process.env.VAPI_API_KEY;
 const FIRM_ID = '591329c4-0dc9-4164-955e-79a273e550d0';
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_APP_URL 
   ? `${process.env.NEXT_PUBLIC_APP_URL}/api/vapi/webhook`
-  : 'https://www.airdesk.com/api/vapi/webhook';
+  : 'https://www.getairdesk.xyz/api/vapi/webhook';
 
 if (!VAPI_API_KEY) {
   console.error('❌ VAPI_API_KEY not found in .env.local');

@@ -21,7 +21,7 @@ const VAPI_API_KEY = process.env.VAPI_API_KEY;
 const PHONE_ID = '33fabbe5-b2c6-4c08-80b9-1bb99bfc62a6';
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_APP_URL 
   ? `${process.env.NEXT_PUBLIC_APP_URL}/api/vapi/webhook`
-  : 'https://www.airdesk.com/api/vapi/webhook';
+  : 'https://www.getairdesk.xyz/api/vapi/webhook';
 
 function vapiRequest(endpoint, method = 'GET', data = null) {
   return new Promise((resolve, reject) => {

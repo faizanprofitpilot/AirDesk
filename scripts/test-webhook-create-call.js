@@ -5,7 +5,7 @@
 
 const https = require('https');
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.airdesk.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.getairdesk.xyz';
 const FIRM_ID = '591329c4-0dc9-4164-955e-79a273e550d0';
 const CONVERSATION_ID = `test-call-${Date.now()}`;
 

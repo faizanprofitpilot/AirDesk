@@ -22,7 +22,7 @@ const FIRM_ID = '591329c4-0dc9-4164-955e-79a273e550d0';
 const PHONE_NUMBER = '+16592157925';
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_APP_URL 
   ? `${process.env.NEXT_PUBLIC_APP_URL}/api/vapi/webhook`
-  : 'https://www.airdesk.com/api/vapi/webhook';
+  : 'https://www.getairdesk.xyz/api/vapi/webhook';
 const ASSISTANT_ID = '3946e037-e23e-4ff6-9da2-608771d468b3'; // The one linked to your phone
 
 function vapiRequest(endpoint, method = 'GET', data = null) {

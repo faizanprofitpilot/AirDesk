@@ -6,7 +6,7 @@
 const https = require('https');
 const http = require('http');
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.airdesk.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.getairdesk.xyz';
 
 const colors = {
   reset: '\x1b[0m',

@@ -8,7 +8,7 @@ Your Vapi assistant's webhook URL is set to `http://localhost:3000/api/vapi/webh
 ### Step 1: Set Production URL
 Make sure `NEXT_PUBLIC_APP_URL` is set in your production environment (Vercel, etc.):
 ```
-NEXT_PUBLIC_APP_URL=https://www.airdesk.ai
+NEXT_PUBLIC_APP_URL=https://www.getairdesk.xyz
 ```
 (Replace with your actual production domain)
 
@@ -30,7 +30,7 @@ Replace `YOUR_FIRM_ID` with your actual firm ID (you can find it in the URL or d
 1. Go to https://dashboard.vapi.ai/assistants
 2. Find your assistant (search by name or ID)
 3. Edit the assistant
-4. Update the webhook URL to: `https://www.airdesk.ai/api/vapi/webhook`
+4. Update the webhook URL to: `https://www.getairdesk.xyz/api/vapi/webhook`
 5. Save
 
 ### Step 3: Verify
@@ -50,7 +50,7 @@ If calls still don't appear after fixing the webhook URL:
 2. **Verify webhook URL in Vapi**:
    - Go to Vapi Dashboard → Assistants → Your Assistant
    - Check the "Server URL" field
-   - Should be: `https://www.airdesk.ai/api/vapi/webhook` (not localhost)
+   - Should be: `https://www.getairdesk.xyz/api/vapi/webhook` (not localhost)
 
 3. **Check environment variables**:
    - Ensure `NEXT_PUBLIC_APP_URL` is set correctly
@@ -58,7 +58,7 @@ If calls still don't appear after fixing the webhook URL:
 
 4. **Test webhook manually**:
    ```bash
-   curl -X POST https://www.airdesk.ai/api/vapi/webhook \
+   curl -X POST https://www.getairdesk.xyz/api/vapi/webhook \
      -H "Content-Type: application/json" \
      -d '{"message":{"type":"status-update","status":"ended","call":{"id":"test"}}}'
    ```
