@@ -164,16 +164,16 @@ export default async function DashboardPage() {
       <div className="flex-1 p-6 lg:p-8 bg-gradient-to-br from-[#F1F5F9] via-white to-[#F1F5F9]">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Hero Header Section */}
-          <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-2xl p-8 text-white shadow-xl">
-            <div className="flex items-center justify-between gap-6">
+          <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-2xl p-6 text-white shadow-xl">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex-1">
-                <h1 className="text-4xl font-bold mb-3">HVAC Service Command Center</h1>
-                <p className="text-lg text-blue-100">
+                <h1 className="text-3xl font-bold mb-2">HVAC Service Command Center</h1>
+                <p className="text-base text-blue-100">
                   Real-time monitoring of your service calls, leads, and dispatch tickets
                 </p>
               </div>
               {firm && (
-                <div className="bg-white rounded-xl p-6 shadow-lg">
+                <div className="bg-white rounded-xl p-4 shadow-lg flex-shrink-0">
                   <PhoneNumberGenerate firm={firm} />
                 </div>
               )}

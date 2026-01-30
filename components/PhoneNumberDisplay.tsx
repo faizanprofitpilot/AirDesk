@@ -27,7 +27,7 @@ export default function PhoneNumberDisplay({ phoneNumber, formattedNumber, isPen
 
   if (isPending) {
     return (
-      <div className="text-2xl font-bold" style={{ color: '#1E40AF' }}>
+      <div className="text-xl font-bold" style={{ color: '#1E40AF' }}>
         {formattedNumber}
       </div>
     );
@@ -35,15 +35,15 @@ export default function PhoneNumberDisplay({ phoneNumber, formattedNumber, isPen
 
   if (!phoneNumber) {
     return (
-      <div className="text-2xl font-bold" style={{ color: '#1E40AF' }}>
+      <div className="text-xl font-bold" style={{ color: '#1E40AF' }}>
         {formattedNumber}
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="text-2xl font-bold" style={{ color: '#1E40AF' }}>
+    <div className="flex items-center gap-2">
+      <div className="text-xl font-bold" style={{ color: '#1E40AF' }}>
         {formattedNumber}
       </div>
       <button

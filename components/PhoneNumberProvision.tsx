@@ -31,14 +31,9 @@ export default function PhoneNumberProvision({ firm, onProvisioned }: PhoneNumbe
   // If number exists, just display it
   if (firm.inbound_number_e164 || firm.vapi_phone_number || firm.twilio_number) {
     return (
-      <div 
-        className="bg-white rounded-xl shadow-sm p-8"
-        style={{
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        }}
-      >
-        <div className="mb-2">
-          <h2 className="text-lg font-semibold mb-1" style={{ color: '#475569' }}>
+      <div className="w-full">
+        <div className="mb-1.5">
+          <h2 className="text-sm font-semibold" style={{ color: '#475569' }}>
             Your AirDesk Phone Number
           </h2>
         </div>
@@ -158,45 +153,40 @@ export default function PhoneNumberProvision({ firm, onProvisioned }: PhoneNumbe
   };
 
   return (
-    <div 
-      className="bg-white rounded-xl shadow-sm p-8"
-      style={{
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-      }}
-    >
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-1" style={{ color: '#475569' }}>
+    <div className="w-full">
+      <div className="mb-3">
+        <h2 className="text-sm font-semibold mb-1" style={{ color: '#475569' }}>
           Phone Number
         </h2>
-        <p className="text-sm" style={{ color: '#475569', opacity: 0.7 }}>
-          Generate a phone number for your HVAC business. Calls are handled by AirDesk's AI receptionist.
+        <p className="text-xs" style={{ color: '#475569', opacity: 0.7 }}>
+          Generate a phone number for your HVAC business
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          <span className="text-sm">{error}</span>
+        <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg">
+          <span className="text-xs">{error}</span>
         </div>
       )}
 
       {success && (
         <div 
-          className="mb-4 border rounded-xl px-4 py-3 flex items-center justify-between"
+          className="mb-3 border rounded-lg px-3 py-2 flex items-center justify-between"
           style={{ 
             backgroundColor: '#F1F5F9',
             borderColor: '#1E40AF',
             color: '#1E40AF'
           }}
         >
-          <span className="text-sm font-medium">Phone number generated successfully!</span>
+          <span className="text-xs font-medium">Phone number generated successfully!</span>
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div>
           <label 
             htmlFor="area_code" 
-            className="block text-xs font-semibold uppercase tracking-wide mb-2"
+            className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
             style={{ color: '#475569' }}
           >
             Area Code (Optional)
@@ -207,7 +197,7 @@ export default function PhoneNumberProvision({ firm, onProvisioned }: PhoneNumbe
             value={areaCode}
             onChange={(e) => setAreaCode(e.target.value.replace(/\D/g, '').slice(0, 3))}
             placeholder="e.g., 415"
-            className="w-full h-12 px-4 rounded-lg border text-sm"
+            className="w-full h-10 px-3 rounded-lg border text-sm"
             style={{
               borderColor: '#E2E8F0',
               backgroundColor: '#FFFFFF',
@@ -215,7 +205,7 @@ export default function PhoneNumberProvision({ firm, onProvisioned }: PhoneNumbe
             }}
             disabled={generating}
           />
-          <p className="text-xs mt-1.5" style={{ color: '#475569', opacity: 0.7 }}>
+          <p className="text-xs mt-1" style={{ color: '#475569', opacity: 0.7 }}>
             Leave blank for any available number
           </p>
         </div>
@@ -224,7 +214,7 @@ export default function PhoneNumberProvision({ firm, onProvisioned }: PhoneNumbe
           type="button"
           onClick={handleGenerate}
           disabled={generating}
-          className="h-12 px-6 rounded-lg font-semibold text-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full"
+          className="h-10 px-4 rounded-lg font-semibold text-xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full"
           style={{
             backgroundColor: generating ? '#475569' : '#1E40AF',
             color: '#FFFFFF',
