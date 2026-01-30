@@ -41,10 +41,9 @@ export async function POST(req: NextRequest) {
 
     const firm = firmData as any;
 
-    // Get app URL
-    let appUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_APP_URL;
+    // Get app URL - prefer NEXT_PUBLIC_APP_URL for production, fallback to VERCEL_URL
+    let appUrl = process.env.NEXT_PUBLIC_APP_URL
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
 
     if (!appUrl) {
       return NextResponse.json(

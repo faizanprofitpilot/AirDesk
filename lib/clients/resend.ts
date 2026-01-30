@@ -260,8 +260,9 @@ export async function sendIntakeEmail(
   // Call duration (if available from call metadata - would need to be passed in)
   const callDuration = ''; // TODO: Add if available
   
-  // Dashboard URL
-  const dashboardUrl = callId ? `https://airdesk.app/calls/${callId}` : 'https://airdesk.app/calls';
+  // Dashboard URL - use NEXT_PUBLIC_APP_URL or fallback to production
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.getairdesk.xyz';
+  const dashboardUrl = callId ? `${appUrl}/calls/${callId}` : `${appUrl}/calls`;
   
   // Build HTML email with new design
 
