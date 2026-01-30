@@ -33,15 +33,13 @@ export default async function SettingsPage() {
     <PlatformLayout>
       <div className="flex-1 bg-gradient-to-br from-[#F1F5F9] via-white to-[#F1F5F9]">
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] px-6 py-8 text-white shadow-lg">
+        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] px-6 py-5 text-white shadow-lg">
           <div className="max-w-4xl mx-auto">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                <SettingsIcon className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold mb-1">HVAC Business Configuration</h1>
-                <p className="text-blue-100">
+            <div className="flex items-center gap-3">
+              <SettingsIcon className="w-5 h-5 text-white flex-shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-2xl font-bold mb-0.5">HVAC Business Configuration</h1>
+                <p className="text-sm text-blue-100/90">
                   Configure your business details, AI receptionist, and notification settings
                 </p>
               </div>
