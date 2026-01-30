@@ -4,6 +4,7 @@ import { PlatformLayout } from '@/components/platform-layout';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import PhoneNumberGenerate from '@/components/PhoneNumberProvision';
+import PhoneNumberDisplay from '@/components/PhoneNumberDisplay';
 import UsageDisplay from '@/components/UsageDisplay';
 import DispatchBoardClient from '@/components/DispatchBoardClient';
 import { Phone, TrendingUp, Clock, AlertTriangle, CheckCircle2, Mail, Wrench, MapPin, Calendar, DollarSign } from 'lucide-react';
@@ -165,13 +166,43 @@ export default async function DashboardPage() {
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Hero Header Section */}
           <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-2xl p-8 text-white shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-6">
+              <div className="flex-1">
                 <h1 className="text-4xl font-bold mb-3">HVAC Service Command Center</h1>
                 <p className="text-lg text-blue-100">
                   Real-time monitoring of your service calls, leads, and dispatch tickets
                 </p>
               </div>
+              {firm && ((firm as any).inbound_number_e164 || (firm as any).vapi_phone_number || (firm as any).twilio_number) && (
+                <div className="bg-white rounded-xl p-6 shadow-lg">
+                  <div className="text-sm font-semibold text-[#475569] mb-2">
+                    Your AirDesk Phone Number
+                  </div>
+                  <PhoneNumberDisplay
+                    phoneNumber={
+                      (firm as any).inbound_number_e164 
+                        ? (firm as any).inbound_number_e164
+                        : (firm as any).vapi_phone_number && (firm as any).vapi_phone_number.match(/^\+?[1-9]\d{1,14}$/)
+                          ? (firm as any).vapi_phone_number
+                          : (firm as any).twilio_number
+                            ? (firm as any).twilio_number
+                            : null
+                    }
+                    formattedNumber={
+                      (firm as any).inbound_number_e164 
+                        ? (firm as any).inbound_number_e164.replace(/^\+?(\d{1})(\d{3})(\d{3})(\d{4})$/, '+$1 ($2) $3-$4')
+                        : (firm as any).vapi_phone_number && (firm as any).vapi_phone_number.match(/^\+?[1-9]\d{1,14}$/) 
+                          ? (firm as any).vapi_phone_number.replace(/^\+?(\d{1})(\d{3})(\d{3})(\d{4})$/, '+$1 ($2) $3-$4')
+                          : (firm as any).twilio_number 
+                            ? (firm as any).twilio_number.replace(/^\+?(\d{1})(\d{3})(\d{3})(\d{4})$/, '+$1 ($2) $3-$4')
+                            : (firm as any).vapi_phone_number_id
+                              ? 'Number being assigned...'
+                              : 'No number assigned'
+                    }
+                    isPending={!!(firm as any).vapi_phone_number_id && !(firm as any).inbound_number_e164}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -333,33 +364,6 @@ export default async function DashboardPage() {
                       </div>
                       <div className="text-sm font-bold text-[#1F2937]">
                         {(firm as any).notify_emails?.length || 0} configured
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-[#F1F5F9] rounded-lg">
-                    <div className="w-10 h-10 rounded-lg bg-[#1E40AF]/10 flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-[#1E40AF]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-[#475569] mb-1">
-                        Your AirDesk Phone Number
-                      </div>
-                      <div className="text-sm font-bold text-[#1F2937] truncate">
-                        {(() => {
-                          const phoneNumber = (firm as any)?.inbound_number_e164 
-                            || (firm as any)?.vapi_phone_number 
-                            || (firm as any)?.twilio_number;
-                          
-                          if (!phoneNumber) return 'Not set';
-                          
-                          // Format: +1 (555) 123-4567
-                          const cleaned = phoneNumber.replace(/[^\d+]/g, '');
-                          const match = cleaned.match(/^\+?1?(\d{3})(\d{3})(\d{4})$/);
-                          if (match) {
-                            return `+1 (${match[1]}) ${match[2]}-${match[3]}`;
-                          }
-                          return phoneNumber;
-                        })()}
                       </div>
                     </div>
                   </div>

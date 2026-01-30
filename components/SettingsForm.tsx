@@ -43,8 +43,6 @@ interface FormData {
   firm_name: string;
   notify_emails: string;
   timezone: string;
-  business_hours_open: string;
-  business_hours_close: string;
 }
 
 interface ValidationErrors {
@@ -69,8 +67,6 @@ export default function SettingsForm({ firm, onSave }: SettingsFormProps) {
     firm_name: firm?.firm_name || '',
     notify_emails: firm?.notify_emails?.join(', ') || '',
     timezone: firm?.timezone || 'America/New_York',
-    business_hours_open: firm?.business_hours_open || firm?.open_time || '09:00',
-    business_hours_close: firm?.business_hours_close || firm?.close_time || '17:00',
   };
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -82,8 +78,6 @@ export default function SettingsForm({ firm, onSave }: SettingsFormProps) {
         firm_name: firm.firm_name,
         notify_emails: firm.notify_emails?.join(', ') || '',
         timezone: firm.timezone,
-        business_hours_open: firm.business_hours_open || firm.open_time || '09:00',
-        business_hours_close: firm.business_hours_close || firm.close_time || '17:00',
       };
       setFormData(newData);
       setSavedFormData(newData);
@@ -123,9 +117,7 @@ export default function SettingsForm({ firm, onSave }: SettingsFormProps) {
     return (
       normalizedFormData.firm_name !== normalizedSavedFormData.firm_name ||
       normalizedFormData.notify_emails !== normalizedSavedFormData.notify_emails ||
-      normalizedFormData.timezone !== normalizedSavedFormData.timezone ||
-      normalizedFormData.business_hours_open !== normalizedSavedFormData.business_hours_open ||
-      normalizedFormData.business_hours_close !== normalizedSavedFormData.business_hours_close
+      normalizedFormData.timezone !== normalizedSavedFormData.timezone
     );
   }, [normalizedFormData, normalizedSavedFormData]);
 
@@ -157,10 +149,6 @@ export default function SettingsForm({ firm, onSave }: SettingsFormProps) {
     }
     if (!formData.notify_emails.trim()) {
       errors.notify_emails = 'At least one notification email is required';
-    }
-
-    if (formData.business_hours_open >= formData.business_hours_close) {
-      errors.business_hours = 'Open time must be before close time';
     }
 
     setValidationErrors(errors);
@@ -213,8 +201,6 @@ export default function SettingsForm({ firm, onSave }: SettingsFormProps) {
         business_name: normalizedFormData.firm_name,
         notify_emails: notifyEmailsArray,
         timezone: normalizedFormData.timezone,
-        business_hours_open: normalizedFormData.business_hours_open,
-        business_hours_close: normalizedFormData.business_hours_close,
       };
 
       if (firm) {
@@ -424,57 +410,6 @@ export default function SettingsForm({ firm, onSave }: SettingsFormProps) {
                     Comma-separated list of email addresses
                   </p>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Business Hours Card */}
-            <Card style={{ borderColor: '#E2E8F0' }}>
-              <CardHeader>
-                <CardTitle style={{ color: '#1F2937' }}>Business Hours</CardTitle>
-                <CardDescription style={{ color: '#475569' }}>
-                  Configure your business operating hours
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="business_hours_open" className="block text-sm font-semibold mb-2" style={{ color: '#1F2937' }}>
-                      Open Time
-                    </label>
-                    <Input
-                      type="time"
-                      id="business_hours_open"
-                      value={formData.business_hours_open}
-                      onChange={(e) => setFormData({ ...formData, business_hours_open: e.target.value })}
-                      className={validationErrors.business_hours ? 'border-red-500' : ''}
-                      style={{ borderColor: validationErrors.business_hours ? '#DC2626' : '#E2E8F0' }}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="business_hours_close" className="block text-sm font-semibold mb-2" style={{ color: '#1F2937' }}>
-                      Close Time
-                    </label>
-                    <Input
-                      type="time"
-                      id="business_hours_close"
-                      value={formData.business_hours_close}
-                      onChange={(e) => {
-                        setFormData({ ...formData, business_hours_close: e.target.value });
-                        if (formData.business_hours_open >= e.target.value) {
-                          setValidationErrors({ ...validationErrors, business_hours: 'Open time must be before close time' });
-                        } else if (validationErrors.business_hours) {
-                          const { business_hours, ...rest } = validationErrors;
-                          setValidationErrors(rest);
-                        }
-                      }}
-                      className={validationErrors.business_hours ? 'border-red-500' : ''}
-                      style={{ borderColor: validationErrors.business_hours ? '#DC2626' : '#E2E8F0' }}
-                    />
-                  </div>
-                </div>
-                {validationErrors.business_hours && (
-                  <p className="text-xs" style={{ color: '#DC2626' }}>{validationErrors.business_hours}</p>
-                )}
               </CardContent>
             </Card>
           </div>
