@@ -4,7 +4,6 @@ import { PlatformLayout } from '@/components/platform-layout';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import PhoneNumberGenerate from '@/components/PhoneNumberProvision';
-import PhoneNumberDisplay from '@/components/PhoneNumberDisplay';
 import UsageDisplay from '@/components/UsageDisplay';
 import DispatchBoardClient from '@/components/DispatchBoardClient';
 import { Phone, TrendingUp, Clock, AlertTriangle, CheckCircle2, Mail, Wrench, MapPin, Calendar, DollarSign } from 'lucide-react';
@@ -166,13 +165,18 @@ export default async function DashboardPage() {
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Hero Header Section */}
           <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-2xl p-8 text-white shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-6">
+              <div className="flex-1">
                 <h1 className="text-4xl font-bold mb-3">HVAC Service Command Center</h1>
                 <p className="text-lg text-blue-100">
                   Real-time monitoring of your service calls, leads, and dispatch tickets
                 </p>
               </div>
+              {firm && (
+                <div className="bg-white rounded-xl p-6 shadow-lg">
+                  <PhoneNumberGenerate firm={firm} />
+                </div>
+              )}
             </div>
           </div>
 
@@ -274,22 +278,15 @@ export default async function DashboardPage() {
                 </div>
               )}
 
-              {/* Quick Actions & Phone Number */}
-              <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-2">
-                  {(firm as any).subscription_plan && (
-                    <UsageDisplay
-                      firmId={(firm as any).id}
-                      subscriptionPlan={(firm as any).subscription_plan}
-                      subscriptionStatus={(firm as any).subscription_status}
-                      subscriptionCurrentPeriodEnd={(firm as any).subscription_current_period_end}
-                    />
-                  )}
-                </div>
-                <div className="lg:col-span-1">
-                  <PhoneNumberGenerate firm={firm} />
-                </div>
-              </div>
+              {/* Usage Display */}
+              {(firm as any).subscription_plan && (
+                <UsageDisplay
+                  firmId={(firm as any).id}
+                  subscriptionPlan={(firm as any).subscription_plan}
+                  subscriptionStatus={(firm as any).subscription_status}
+                  subscriptionCurrentPeriodEnd={(firm as any).subscription_current_period_end}
+                />
+              )}
 
               {/* Business Quick Info */}
               <div className="bg-white rounded-xl shadow-md border border-[#E2E8F0] p-6">
@@ -334,33 +331,6 @@ export default async function DashboardPage() {
                       </div>
                       <div className="text-sm font-bold text-[#1F2937]">
                         {(firm as any).notify_emails?.length || 0} configured
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-[#F1F5F9] rounded-lg">
-                    <div className="w-10 h-10 rounded-lg bg-[#1E40AF]/10 flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-[#1E40AF]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-[#475569] mb-1">
-                        Your AirDesk Phone Number
-                      </div>
-                      <div className="text-sm font-bold text-[#1F2937] truncate">
-                        {(() => {
-                          const phoneNumber = (firm as any)?.inbound_number_e164 
-                            || (firm as any)?.vapi_phone_number 
-                            || (firm as any)?.twilio_number;
-                          
-                          if (!phoneNumber) return 'Not set';
-                          
-                          // Format: +1 (555) 123-4567
-                          const cleaned = phoneNumber.replace(/[^\d+]/g, '');
-                          const match = cleaned.match(/^\+?1?(\d{3})(\d{3})(\d{4})$/);
-                          if (match) {
-                            return `+1 (${match[1]}) ${match[2]}-${match[3]}`;
-                          }
-                          return phoneNumber;
-                        })()}
                       </div>
                     </div>
                   </div>
