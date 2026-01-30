@@ -334,6 +334,33 @@ export default async function DashboardPage() {
                       </div>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3 p-4 bg-[#F1F5F9] rounded-lg">
+                    <div className="w-10 h-10 rounded-lg bg-[#1E40AF]/10 flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-[#1E40AF]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-[#475569] mb-1">
+                        Your AirDesk Phone Number
+                      </div>
+                      <div className="text-sm font-bold text-[#1F2937] truncate">
+                        {(() => {
+                          const phoneNumber = (firm as any)?.inbound_number_e164 
+                            || (firm as any)?.vapi_phone_number 
+                            || (firm as any)?.twilio_number;
+                          
+                          if (!phoneNumber) return 'Not set';
+                          
+                          // Format: +1 (555) 123-4567
+                          const cleaned = phoneNumber.replace(/[^\d+]/g, '');
+                          const match = cleaned.match(/^\+?1?(\d{3})(\d{3})(\d{4})$/);
+                          if (match) {
+                            return `+1 (${match[1]}) ${match[2]}-${match[3]}`;
+                          }
+                          return phoneNumber;
+                        })()}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
