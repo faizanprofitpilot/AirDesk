@@ -74,7 +74,7 @@ export function AppSidebar() {
           <img
             src="/logo.png"
             alt="AirDesk"
-            className="h-16 w-auto"
+            className="h-24 w-auto"
           />
         </Link>
       </SidebarHeader>
