@@ -10,10 +10,10 @@ export function buildVapiAgent(
   serviceFeeEnabled?: boolean,
   serviceCallFee?: number | null
 ) {
-  const agentNameText = agentName || 'an AI assistant';
+  const agentNameText = agentName || 'Jessica';
   const greeting = customGreeting 
     ? customGreeting.replace(/{{business_name}}/g, businessName).replace(/{{agent_name}}/g, agentNameText)
-    : `Thank you for calling ${businessName}. This is ${agentNameText}. How can I help you with your HVAC needs today?`;
+    : `Thanks for calling ${businessName}. This is ${agentNameText}. How can I help you today?`;
 
   const baseSystemPrompt = `You are a professional HVAC phone receptionist for ${businessName}.
 

@@ -9,7 +9,7 @@ interface AIReceptionistSettingsProps {
   onSave?: () => void;
 }
 
-const DEFAULT_GREETING = "Thank you for calling {{business_name}}. I'm {{agent_name}}, your AI receptionist. I can help you schedule an HVAC service. How can I help you today?";
+const DEFAULT_GREETING = "Thanks for calling {{business_name}}. This is {{agent_name}}. How can I help you today?";
 
 export default function AIReceptionistSettings({ firm, onSave }: AIReceptionistSettingsProps) {
   const [loading, setLoading] = useState(false);
