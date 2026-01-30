@@ -191,12 +191,17 @@ export default async function DashboardPage() {
         ? 'URGENT'
         : 'NORMAL';
 
-    // Get ticket_status from call, default to READY if not set
-    const ticketStatus = (call.ticket_status || 'READY') as Ticket['status'];
+    // Get ticket_status from call, default to READY if not set or invalid
+    // Ensure it's one of the valid statuses
+    let ticketStatus = call.ticket_status || 'READY';
+    if (ticketStatus !== 'READY' && ticketStatus !== 'DISPATCHED' && ticketStatus !== 'COMPLETED') {
+      ticketStatus = 'READY';
+    }
+    const validTicketStatus = ticketStatus as Ticket['status'];
 
     return {
       id: call.id,
-      status: ticketStatus,
+      status: validTicketStatus,
       priority,
       issueCategory,
       issueDescription: issueDescription,

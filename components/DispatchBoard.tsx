@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, closestCorners } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, closestCorners, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TicketCard from './TicketCard';
@@ -69,7 +69,19 @@ export default function DispatchBoard({ tickets, onMoveTicket, filterUrgent = fa
     };
 
     filteredTickets.forEach(ticket => {
-      grouped[ticket.status].push(ticket);
+      // Ensure status is valid, default to READY if invalid
+      const validStatus: TicketStatus = 
+        ticket.status === 'READY' || ticket.status === 'DISPATCHED' || ticket.status === 'COMPLETED'
+          ? ticket.status
+          : 'READY';
+      
+      // Create a new ticket object with valid status (don't mutate original)
+      const ticketWithValidStatus: Ticket = {
+        ...ticket,
+        status: validStatus,
+      };
+      
+      grouped[validStatus].push(ticketWithValidStatus);
     });
 
     // Sort each group: URGENT first, then newest
@@ -114,7 +126,15 @@ export default function DispatchBoard({ tickets, onMoveTicket, filterUrgent = fa
     if (!over) return;
 
     const ticketId = active.id as string;
-    const newStatus = over.id as TicketStatus;
+    const overId = over.id as string;
+    
+    // Validate that over.id is a valid column status
+    if (overId !== 'READY' && overId !== 'DISPATCHED' && overId !== 'COMPLETED') {
+      console.warn('[DispatchBoard] Invalid drop target:', overId);
+      return;
+    }
+    
+    const newStatus = overId as TicketStatus;
 
     await handleMoveTicket(ticketId, newStatus);
   };
@@ -188,10 +208,18 @@ function Column({
   onMoveTicket: (ticketId: string, newStatus: TicketStatus) => Promise<void>;
 }) {
   const ticketIds = tickets.map(t => t.id);
+  
+  // Make column a droppable area
+  const { setNodeRef, isOver } = useDroppable({
+    id: id,
+  });
 
   return (
     <div
-      className="bg-[#F1F5F9] rounded-xl p-4 border border-[#E2E8F0] min-h-[400px]"
+      ref={setNodeRef}
+      className={`bg-[#F1F5F9] rounded-xl p-4 border border-[#E2E8F0] min-h-[400px] transition-colors ${
+        isOver ? 'bg-blue-50 border-blue-300' : ''
+      }`}
       data-column-id={id}
     >
       <div className="flex items-center justify-between mb-4">
