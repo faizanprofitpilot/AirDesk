@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/clients/supabase';
 import { generateSummary } from '@/lib/utils/summarize';
 import { sendIntakeEmail } from '@/lib/clients/resend';
+import { extractIntakeFromTranscript } from '@/lib/utils/extract-intake';
 import { IntakeData, SummaryData, UrgencyLevel } from '@/types';
 
 /**
@@ -305,6 +306,34 @@ async function finalizeCallRecord(
     console.log('[Finalize Call] Intake full_name:', intake.full_name || 'NOT SET');
   }
   
+  // Extract intake data from transcript if intake is missing or incomplete
+  // Check if we have essential fields (name, phone, issue)
+  const hasEssentialData = intake && (
+    (intake.callerName || intake.full_name) &&
+    (intake.callerPhone || intake.callback_number) &&
+    (intake.issueDescription || intake.issueCategory || intake.reason_for_call)
+  );
+  
+  let finalIntake = intake;
+  
+  if (!hasEssentialData && transcript && transcript.trim().length > 0) {
+    console.log('[Finalize Call] Intake data is incomplete, extracting from transcript...');
+    try {
+      const extractedIntake = await extractIntakeFromTranscript(transcript, intake);
+      finalIntake = extractedIntake;
+      console.log('[Finalize Call] Extracted intake data from transcript:', {
+        callerName: extractedIntake.callerName || extractedIntake.full_name,
+        callerPhone: extractedIntake.callerPhone || extractedIntake.callback_number,
+        addressLine1: extractedIntake.addressLine1,
+        city: extractedIntake.city,
+        issueDescription: extractedIntake.issueDescription || extractedIntake.reason_for_call,
+      });
+    } catch (extractError) {
+      console.error('[Finalize Call] Error extracting intake from transcript:', extractError);
+      // Continue with existing intake data
+    }
+  }
+  
   // Log recording URL update for debugging
   if (recordingUrl) {
     console.log('[Finalize Call] Updating recording URL:', recordingUrl);
@@ -314,9 +343,9 @@ async function finalizeCallRecord(
     console.log('[Finalize Call] No recording URL available');
   }
   
-  // Update intake_json if we have intake data
-  if (intake && Object.keys(intake).length > 0) {
-    updateData.intake_json = intake as IntakeData;
+  // Update intake_json with final intake data (extracted or original)
+  if (finalIntake && Object.keys(finalIntake).length > 0) {
+    updateData.intake_json = finalIntake as IntakeData;
   }
   
   const { error: updateError } = await supabase
@@ -343,10 +372,10 @@ async function finalizeCallRecord(
   // Use the updated call record if available, otherwise use the original
   const currentCall = (updatedCall as any) || call;
 
-  // Generate summary
+  // Generate summary using final intake data (extracted or original)
   let summary: SummaryData;
   try {
-    summary = await generateSummary(transcript || 'No transcript available.', intake);
+    summary = await generateSummary(transcript || 'No transcript available.', finalIntake || intake);
     // Update summary - don't touch status (preserve 'sending_email' if we're sending email)
     await supabase
       .from('calls')
@@ -408,7 +437,7 @@ async function finalizeCallRecord(
     try {
       await sendIntakeEmail(
         currentFirm.notify_emails,
-        intake,
+        finalIntake || intake, // Use extracted intake data if available
         summary,
         transcript || null,
         finalRecordingUrl, // Use the most up-to-date recording URL

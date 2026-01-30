@@ -115,21 +115,74 @@ export default async function DashboardPage() {
 
   const recentCalls = (recentCallsData || []) as any[];
 
-  // Fetch all calls for Dispatch Board (only those with intake data)
+  // Fetch all calls for Dispatch Board
+  // Show calls that have transcripts OR intake_json (covers both finalized and in-progress calls with data)
   const { data: allCallsData } = firm
     ? await supabase
         .from('calls')
         .select('*')
         .eq('firm_id', (firm as any).id)
-        .not('intake_json', 'is', null)
+        .or('transcript_text.not.is.null,intake_json.not.is.null') // Show calls with transcripts or intake data
         .order('started_at', { ascending: false })
     : { data: null };
 
   // Transform calls to tickets
   const tickets: Ticket[] = ((allCallsData || []) as any[]).map((call: any) => {
     const intake = call.intake_json as any;
-    const urgency = intake?.urgency || call.urgency || 'normal';
-    const issueCategory = intake?.issueCategory || 'Not specified';
+    
+    // Extract from transcript if intake_json is missing or incomplete
+    let callerName = intake?.callerName || intake?.full_name;
+    let callerPhone = intake?.callerPhone || intake?.callback_number || call.from_number;
+    let issueCategory = intake?.issueCategory;
+    let issueDescription = intake?.issueDescription || intake?.reason_for_call;
+    let addressLine1 = intake?.addressLine1;
+    let city = intake?.city;
+    let state = intake?.state;
+    let urgency = intake?.urgency || call.urgency || 'normal';
+    
+    // Fallback: Extract from transcript if intake data is missing
+    // Also use from_number as caller phone if available
+    if (!callerPhone && call.from_number) {
+      callerPhone = call.from_number;
+    }
+    
+    if (call.transcript_text && (!callerName || !issueDescription)) {
+      const transcript = call.transcript_text;
+      
+      // Extract name from transcript
+      if (!callerName) {
+        const nameMatch = transcript.match(/(?:my name is|i'm|this is|i am|name is)\s+([A-Z][a-zA-Z\s]+?)(?:\.|,|$|\n)/i);
+        if (nameMatch && nameMatch[1]) {
+          callerName = nameMatch[1].trim();
+        }
+      }
+      
+      // Extract issue from transcript
+      if (!issueDescription && !issueCategory) {
+        const issueMatch = transcript.match(/(?:furnace|heater|ac|air conditioner|thermostat|hvac|heat|cool)[^.\n]*(?:is|not|won't|doesn't|isn't)[^.\n]*/i);
+        if (issueMatch) {
+          issueDescription = issueMatch[0].trim();
+        } else {
+          // Try simpler pattern
+          const simpleMatch = transcript.match(/(?:issue|problem|what's wrong)[:\s]+([^.\n]+)/i);
+          if (simpleMatch && simpleMatch[1]) {
+            issueDescription = simpleMatch[1].trim();
+          }
+        }
+      }
+      
+      // Extract address from transcript
+      if (!addressLine1) {
+        const addressMatch = transcript.match(/(\d+\s+[A-Z][A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Court|Ct|Way|Place|Pl)[^,]*)/i);
+        if (addressMatch && addressMatch[1]) {
+          addressLine1 = addressMatch[1].trim();
+        }
+      }
+    }
+    
+    // Default values if still missing
+    issueCategory = issueCategory || 'Not specified';
+    callerName = callerName || 'Unknown caller';
     
     // Determine priority: URGENT if no heat/cool + ASAP, or if urgency is high/ASAP
     const priority: 'URGENT' | 'NORMAL' = 
@@ -146,12 +199,12 @@ export default async function DashboardPage() {
       status: ticketStatus,
       priority,
       issueCategory,
-      issueDescription: intake?.issueDescription,
-      callerName: intake?.callerName || intake?.full_name || 'Unknown caller',
-      callerPhone: intake?.callerPhone || intake?.callback_number || call.from_number,
-      city: intake?.city,
-      state: intake?.state,
-      addressLine1: intake?.addressLine1,
+      issueDescription: issueDescription,
+      callerName: callerName,
+      callerPhone: callerPhone,
+      city: city,
+      state: state,
+      addressLine1: addressLine1,
       requestedWindow: intake?.requestedWindow || (urgency === 'ASAP' ? 'ASAP' : undefined),
       createdAt: call.started_at,
       recordingUrl: call.recording_url,
@@ -388,11 +441,63 @@ export default async function DashboardPage() {
                   <div className="divide-y divide-[#E2E8F0]">
                     {recentCalls.map((call) => {
                       const intake = call.intake_json as any;
-                      const callerName = intake?.callerName || call.from_number || 'Unknown Customer';
-                      const issueCategory = intake?.issueCategory || 'Not specified';
-                      const urgency = intake?.urgency || 'normal';
-                      const address = intake?.addressLine1 && intake?.city 
-                        ? `${intake.addressLine1}, ${intake.city}` 
+                      
+                      // Extract from intake_json first
+                      let callerName = intake?.callerName || intake?.full_name;
+                      let issueCategory = intake?.issueCategory;
+                      let issueDescription = intake?.issueDescription || intake?.reason_for_call;
+                      let addressLine1 = intake?.addressLine1;
+                      let city = intake?.city;
+                      let urgency = intake?.urgency || call.urgency || 'normal';
+                      
+                      // Fallback: Extract from transcript if intake data is missing
+                      if (call.transcript_text && (!callerName || !issueDescription)) {
+                        const transcript = call.transcript_text;
+                        
+                        // Extract name from transcript
+                        if (!callerName) {
+                          const nameMatch = transcript.match(/(?:my name is|i'm|this is|i am|name is)\s+([A-Z][a-zA-Z\s]+?)(?:\.|,|$|\n)/i);
+                          if (nameMatch && nameMatch[1]) {
+                            const extractedName = nameMatch[1].trim();
+                            // Filter out false positives
+                            if (extractedName.length > 1 && 
+                                !extractedName.toLowerCase().includes('receptionist') &&
+                                !extractedName.toLowerCase().includes('assistant')) {
+                              callerName = extractedName;
+                            }
+                          }
+                        }
+                        
+                        // Extract issue from transcript
+                        if (!issueDescription && !issueCategory) {
+                          const issueMatch = transcript.match(/(?:furnace|heater|ac|air conditioner|thermostat|hvac|heat|cool)[^.\n]*(?:is|not|won't|doesn't|isn't)[^.\n]*/i);
+                          if (issueMatch) {
+                            issueDescription = issueMatch[0].trim();
+                          } else {
+                            // Try simpler pattern
+                            const simpleMatch = transcript.match(/(?:issue|problem|what's wrong)[:\s]+([^.\n]+)/i);
+                            if (simpleMatch && simpleMatch[1]) {
+                              issueDescription = simpleMatch[1].trim();
+                            }
+                          }
+                        }
+                        
+                        // Extract address from transcript
+                        if (!addressLine1) {
+                          const addressMatch = transcript.match(/(\d+\s+[A-Z][A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Court|Ct|Way|Place|Pl)[^,]*)/i);
+                          if (addressMatch && addressMatch[1]) {
+                            addressLine1 = addressMatch[1].trim();
+                          }
+                        }
+                      }
+                      
+                      // Default values
+                      callerName = callerName || call.from_number || 'Unknown Customer';
+                      issueCategory = issueCategory || (issueDescription ? 'Service Request' : 'Not specified');
+                      const address = addressLine1 && city 
+                        ? `${addressLine1}, ${city}` 
+                        : addressLine1 
+                        ? addressLine1 
                         : 'Address not provided';
                       
                       return (

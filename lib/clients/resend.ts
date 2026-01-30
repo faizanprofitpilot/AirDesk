@@ -186,6 +186,95 @@ function extractCallerInfo(
     }
   }
 
+  // Fallback: Extract directly from transcript using regex patterns
+  if (transcript) {
+    // Extract name from transcript (look for patterns like "My name is John", "I'm John", "This is John Smith")
+    if (!name || name === 'Not provided') {
+      const namePatterns = [
+        /(?:my name is|i'm|this is|i am|name is)\s+([A-Z][a-zA-Z\s]+?)(?:\.|,|$|\n)/i,
+        /(?:name|caller)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\.|,|$|\n)/i,
+        /(?:^|\n)Caller:\s*([A-Z][a-zA-Z\s]+?)(?:\.|,|$|\n)/i,
+      ];
+      
+      for (const pattern of namePatterns) {
+        const match = transcript.match(pattern);
+        if (match && match[1]) {
+          const extractedName = match[1].trim();
+          // Filter out common false positives
+          if (extractedName.length > 1 && 
+              !extractedName.toLowerCase().includes('receptionist') &&
+              !extractedName.toLowerCase().includes('assistant') &&
+              !extractedName.toLowerCase().includes('ai')) {
+            name = extractedName;
+            break;
+          }
+        }
+      }
+    }
+
+    // Extract phone number from transcript (look for digit patterns)
+    if (!phone || phone === 'Not provided') {
+      const phonePatterns = [
+        /(?:phone|number|callback)[:\s]+([\d\s\-\(\)]{10,})/i,
+        /(\d{3}[-.\s]?\d{3}[-.\s]?\d{4})/,
+        /(\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/,
+        /(\d{10,})/,
+      ];
+      
+      for (const pattern of phonePatterns) {
+        const match = transcript.match(pattern);
+        if (match && match[1]) {
+          const extractedPhone = match[1].trim().replace(/\s+/g, '');
+          // Validate it looks like a phone number (at least 10 digits)
+          const digitsOnly = extractedPhone.replace(/\D/g, '');
+          if (digitsOnly.length >= 10) {
+            phone = extractedPhone;
+            break;
+          }
+        }
+      }
+    }
+
+    // Extract address from transcript
+    if (!address || address === 'Not provided') {
+      const addressPatterns = [
+        /(?:address|location)[:\s]+([A-Z0-9][A-Za-z0-9\s,]+?)(?:\.|,|$|\n)/i,
+        /(\d+\s+[A-Z][A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Court|Ct|Way|Place|Pl)[^,]*)/i,
+        /(\d+\s+[A-Z][A-Za-z\s]+(?:,\s*[A-Z][a-z]+)?)/i,
+      ];
+      
+      for (const pattern of addressPatterns) {
+        const match = transcript.match(pattern);
+        if (match && match[1]) {
+          const extractedAddress = match[1].trim();
+          if (extractedAddress.length > 5) {
+            address = extractedAddress;
+            break;
+          }
+        }
+      }
+    }
+
+    // Extract issue from transcript
+    if (!issue || issue === 'Not provided') {
+      const issuePatterns = [
+        /(?:issue|problem|what's wrong|what is wrong)[:\s]+([^.\n]+)/i,
+        /(?:furnace|heater|ac|air conditioner|thermostat|hvac)[^.\n]*(?:is|not|won't|doesn't)[^.\n]*/i,
+      ];
+      
+      for (const pattern of issuePatterns) {
+        const match = transcript.match(pattern);
+        if (match && match[1]) {
+          const extractedIssue = match[1].trim();
+          if (extractedIssue.length > 3) {
+            issue = extractedIssue;
+            break;
+          }
+        }
+      }
+    }
+  }
+
   return {
     name: name || 'Not provided',
     phone: phone || 'Not provided',
