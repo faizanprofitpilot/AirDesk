@@ -22,11 +22,15 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
     return null; // No date filter
   }
 
-  if (searchParams.start && searchParams.end) {
-    return {
-      start: new Date(searchParams.start),
-      end: new Date(searchParams.end),
-    };
+  // Custom dates or if start/end are provided directly
+  if (searchParams.period === 'custom' || (searchParams.start && searchParams.end)) {
+    if (searchParams.start && searchParams.end) {
+      return {
+        start: new Date(searchParams.start),
+        end: new Date(searchParams.end),
+      };
+    }
+    return null;
   }
 
   // Fallback: calculate from period
