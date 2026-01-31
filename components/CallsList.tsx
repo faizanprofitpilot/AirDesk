@@ -201,21 +201,22 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
 
       {/* Calls List */}
       <div className="flex-1 overflow-auto bg-[#F1F5F9] p-6">
-        {filteredCalls.length === 0 ? (
+        {callsArray.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center">
             <Phone className="w-12 h-12 text-[#475569] mx-auto mb-4 opacity-50" />
             <p className="text-sm font-medium text-[#475569] mb-1">No service calls found</p>
             <p className="text-xs text-[#475569] opacity-70">
-              {callsArray.length === 0 ? 'No calls have been received yet.' : 'Try adjusting your filters.'}
+              No calls have been received yet.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredCalls.map((call) => {
+            {callsArray.map((call) => {
+              if (!call || !call.id) return null;
               const intake = call.intake_json as any;
-              const callerName = intake?.callerName || call.from_number || 'Unknown';
+              const callerName = intake?.callerName || intake?.full_name || call.from_number || 'Unknown';
               const issueCategory = getIssueCategory(call);
-              const urgency = intake?.urgency || 'normal';
+              const urgency = intake?.urgency || call.urgency || 'normal';
               const address = intake?.addressLine1 ? 
                 `${intake.addressLine1}${intake.city ? `, ${intake.city}` : ''}` : 
                 'Address not provided';
