@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Call, CallStatus, UrgencyLevel } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Phone, Clock, AlertCircle, CheckCircle2, Mail, Filter, Search } from 'lucide-react';
+import { Phone, Clock, AlertCircle, CheckCircle2, Mail, Filter, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface CallsListProps {
@@ -118,6 +118,7 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
 
   // Ensure calls is an array
   const callsArray = Array.isArray(calls) ? calls : [];
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const filteredCalls = callsArray.filter(call => {
     if (!call || !call.id) return false;
@@ -131,6 +132,31 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
     }
     return true;
   });
+
+  const handleDelete = async (callId: string) => {
+    if (!confirm('Are you sure you want to delete this call record? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsDeleting(callId);
+    try {
+      const response = await fetch(`/api/calls/${callId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete call');
+      }
+
+      // Refresh the page to show updated list
+      router.refresh();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to delete call');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -211,7 +237,7 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
           </div>
         ) : (
           <div className="space-y-4">
-            {callsArray.map((call) => {
+            {filteredCalls.map((call) => {
               if (!call || !call.id) return null;
               const intake = call.intake_json as any;
               const callerName = intake?.callerName || intake?.full_name || call.from_number || 'Unknown';
@@ -274,6 +300,17 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
                           <Mail className="w-4 h-4 text-[#059669]" />
                         </div>
                       )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(call.id);
+                        }}
+                        disabled={isDeleting === call.id}
+                        className="w-8 h-8 rounded-lg bg-[#DC2626]/10 flex items-center justify-center hover:bg-[#DC2626]/20 transition-colors disabled:opacity-50"
+                        title="Delete call"
+                      >
+                        <Trash2 className="w-4 h-4 text-[#DC2626]" />
+                      </button>
                     </div>
                   </div>
                 </div>

@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic';
 
 // Helper function to get date range from searchParams
 function getDateRange(searchParams: { period?: string; start?: string; end?: string }) {
-  // Default to 'all' if no period is specified (show all calls)
-  const period = searchParams.period || 'all';
+  // Default to 'today' if no period is specified
+  const period = searchParams.period || 'today';
   
   if (period === 'all') {
     return null; // No date filter
