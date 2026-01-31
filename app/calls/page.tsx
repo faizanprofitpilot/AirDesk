@@ -10,7 +10,10 @@ export const dynamic = 'force-dynamic';
 
 // Helper function to get date range from searchParams
 function getDateRange(searchParams: { period?: string; start?: string; end?: string }) {
-  if (!searchParams.period || searchParams.period === 'all') {
+  // Default to 'today' if no period is specified
+  const period = searchParams.period || 'today';
+  
+  if (period === 'all') {
     return null; // No date filter
   }
 
@@ -30,7 +33,7 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
   const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
   let start: Date;
 
-  switch (searchParams.period) {
+  switch (period) {
     case 'today':
       start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
       break;

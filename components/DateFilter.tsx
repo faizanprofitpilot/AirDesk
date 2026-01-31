@@ -20,9 +20,10 @@ export default function DateFilter({ className = '' }: DateFilterProps) {
   const pickerRef = useRef<HTMLDivElement>(null);
   
   // Determine current filter - check if custom dates are set
+  // Default to 'today' if no period is specified
   const hasCustomDates = searchParams.get('start') && searchParams.get('end') && 
                          !['today', 'week', 'month', 'year'].includes(searchParams.get('period') || '');
-  const currentFilter = hasCustomDates ? 'custom' : (searchParams.get('period') || 'all') as DateFilterOption;
+  const currentFilter = hasCustomDates ? 'custom' : (searchParams.get('period') || 'today') as DateFilterOption;
   
   // Initialize custom dates from URL if present
   useEffect(() => {
@@ -107,6 +108,7 @@ export default function DateFilter({ className = '' }: DateFilterProps) {
     setShowCustomPicker(false);
     router.push(`?${params.toString()}`);
   };
+
 
   const handleCustomDateApply = () => {
     if (!customStart || !customEnd) return;
