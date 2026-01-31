@@ -6,12 +6,57 @@ import { Button } from '@/components/ui/button';
 import PhoneNumberGenerate from '@/components/PhoneNumberProvision';
 import UsageDisplay from '@/components/UsageDisplay';
 import DispatchBoardClient from '@/components/DispatchBoardClient';
+import DateFilter from '@/components/DateFilter';
 import { Phone, TrendingUp, Clock, AlertTriangle, CheckCircle2, Mail, Wrench, MapPin, Calendar, DollarSign } from 'lucide-react';
 import { Ticket } from '@/components/DispatchBoard';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: { period?: string; start?: string; end?: string };
+}
+
+// Helper function to get date range from searchParams
+function getDateRange(searchParams: { period?: string; start?: string; end?: string }) {
+  if (!searchParams.period || searchParams.period === 'all') {
+    return null; // No date filter
+  }
+
+  if (searchParams.start && searchParams.end) {
+    return {
+      start: new Date(searchParams.start),
+      end: new Date(searchParams.end),
+    };
+  }
+
+  // Fallback: calculate from period
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  let start: Date;
+
+  switch (searchParams.period) {
+    case 'today':
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      break;
+    case 'week':
+      start = new Date(now);
+      start.setDate(start.getDate() - 7);
+      start.setHours(0, 0, 0, 0);
+      break;
+    case 'month':
+      start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      break;
+    case 'year':
+      start = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+      break;
+    default:
+      return null;
+  }
+
+  return { start, end };
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const supabase = await createServerClient();
   const {
     data: { session },
@@ -43,27 +88,48 @@ export default async function DashboardPage() {
 
   const firm = firmData || null;
 
+  // Get date range filter
+  const dateRange = getDateRange(searchParams);
+
+  // Helper to apply date filter to a query
+  const applyDateFilter = (query: any) => {
+    if (dateRange) {
+      return query
+        .gte('started_at', dateRange.start.toISOString())
+        .lte('started_at', dateRange.end.toISOString());
+    }
+    return query;
+  };
+
   const { count: callsCount } = firm
-    ? await supabase
-        .from('calls')
-        .select('*', { count: 'exact', head: true })
-        .eq('firm_id', (firm as any).id)
+    ? await applyDateFilter(
+        supabase
+          .from('calls')
+          .select('*', { count: 'exact', head: true })
+          .eq('firm_id', (firm as any).id)
+      )
     : { count: 0 };
 
   let leadsCount = 0;
   if (firm) {
     try {
-      const { count, error } = await supabase
+      let query = supabase
         .from('calls')
         .select('*', { count: 'exact', head: true })
         .eq('firm_id', (firm as any).id)
         .or('intake_json->>callerName.not.is.null,intake_json->>full_name.not.is.null');
       
+      query = applyDateFilter(query);
+      const { count, error } = await query;
+      
       if (error) {
-        const { data: allCalls } = await supabase
+        let allCallsQuery = supabase
           .from('calls')
-          .select('intake_json')
+          .select('intake_json, started_at')
           .eq('firm_id', (firm as any).id);
+        
+        allCallsQuery = applyDateFilter(allCallsQuery);
+        const { data: allCalls } = await allCallsQuery;
         
         leadsCount = (allCalls || []).filter((call: any) => {
           const intake = call.intake_json as any;
@@ -74,10 +140,13 @@ export default async function DashboardPage() {
         leadsCount = count || 0;
       }
     } catch (err) {
-      const { data: allCalls } = await supabase
+      let allCallsQuery = supabase
         .from('calls')
-        .select('intake_json')
+        .select('intake_json, started_at')
         .eq('firm_id', (firm as any).id);
+      
+      allCallsQuery = applyDateFilter(allCallsQuery);
+      const { data: allCalls } = await allCallsQuery;
       
       leadsCount = (allCalls || []).filter((call: any) => {
         const intake = call.intake_json as any;
@@ -88,29 +157,36 @@ export default async function DashboardPage() {
 
   let urgentCallsCount = 0;
   if (firm) {
-    const { count } = await supabase
+    let query = supabase
       .from('calls')
       .select('*', { count: 'exact', head: true })
       .eq('firm_id', (firm as any).id)
       .or('intake_json->>urgency.eq.ASAP,intake_json->>issueCategory.eq.No heat,intake_json->>issueCategory.eq.No cool');
+    
+    query = applyDateFilter(query);
+    const { count } = await query;
     urgentCallsCount = count || 0;
   }
 
   const { count: emailedCount } = firm
-    ? await supabase
-        .from('calls')
-        .select('*', { count: 'exact', head: true })
-        .eq('firm_id', (firm as any).id)
-        .eq('status', 'emailed')
+    ? await applyDateFilter(
+        supabase
+          .from('calls')
+          .select('*', { count: 'exact', head: true })
+          .eq('firm_id', (firm as any).id)
+          .eq('status', 'emailed')
+      )
     : { count: 0 };
 
   const { data: recentCallsData } = firm
-    ? await supabase
-        .from('calls')
-        .select('*')
-        .eq('firm_id', (firm as any).id)
-        .order('started_at', { ascending: false })
-        .limit(5)
+    ? await applyDateFilter(
+        supabase
+          .from('calls')
+          .select('*')
+          .eq('firm_id', (firm as any).id)
+          .order('started_at', { ascending: false })
+          .limit(5)
+      )
     : { data: null };
 
   const recentCalls = (recentCallsData || []) as any[];
@@ -118,12 +194,14 @@ export default async function DashboardPage() {
   // Fetch all calls for Dispatch Board
   // Show calls that have transcripts OR intake_json (covers both finalized and in-progress calls with data)
   const { data: allCallsData } = firm
-    ? await supabase
-        .from('calls')
-        .select('*')
-        .eq('firm_id', (firm as any).id)
-        .or('transcript_text.not.is.null,intake_json.not.is.null') // Show calls with transcripts or intake data
-        .order('started_at', { ascending: false })
+    ? await applyDateFilter(
+        supabase
+          .from('calls')
+          .select('*')
+          .eq('firm_id', (firm as any).id)
+          .or('transcript_text.not.is.null,intake_json.not.is.null') // Show calls with transcripts or intake data
+          .order('started_at', { ascending: false })
+      )
     : { data: null };
 
   // Transform calls to tickets
@@ -262,6 +340,11 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-8">
+              {/* Date Filter */}
+              <div className="flex items-center justify-end">
+                <DateFilter />
+              </div>
+
               {/* Key Performance Metrics */}
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <div className="bg-white rounded-xl shadow-md border border-[#E2E8F0] p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
@@ -435,12 +518,15 @@ export default async function DashboardPage() {
                           Latest customer calls and dispatch tickets
                         </p>
                       </div>
-                      <Button 
-                        asChild 
-                        className="h-10 px-5 rounded-lg bg-white text-[#1E40AF] hover:bg-blue-50 font-semibold shadow-lg"
-                      >
-                        <Link href="/calls">View All Calls →</Link>
-                      </Button>
+                      <div className="flex items-center gap-3">
+                        <DateFilter className="[&_svg]:text-white/80 [&_div]:bg-white/10 [&_div]:border-white/20 [&_button]:text-white/80 [&_button:hover]:bg-white/20 [&_button:hover]:text-white" />
+                        <Button 
+                          asChild 
+                          className="h-10 px-5 rounded-lg bg-white text-[#1E40AF] hover:bg-blue-50 font-semibold shadow-lg"
+                        >
+                          <Link href="/calls">View All Calls →</Link>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   <div className="divide-y divide-[#E2E8F0]">
