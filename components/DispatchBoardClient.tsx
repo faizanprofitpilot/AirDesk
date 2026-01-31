@@ -12,6 +12,7 @@ interface DispatchBoardClientProps {
 export default function DispatchBoardClient({ initialTickets, firmId }: DispatchBoardClientProps) {
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   // Sync with server data
   useEffect(() => {
@@ -60,10 +61,44 @@ export default function DispatchBoardClient({ initialTickets, firmId }: Dispatch
     }
   };
 
+  const handleDeleteTicket = async (ticketId: string) => {
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket) return;
+
+    // Optimistic update - remove ticket immediately
+    setTickets(prev => prev.filter(t => t.id !== ticketId));
+    setIsDeleting(ticketId);
+
+    try {
+      const response = await fetch(`/api/calls/${ticketId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete ticket');
+      }
+
+      toastSuccess('Ticket deleted successfully');
+    } catch (error) {
+      // Revert optimistic update - add ticket back
+      if (ticket) {
+        setTickets(prev => [...prev, ticket].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ));
+      }
+      
+      toastError(error instanceof Error ? error.message : 'Failed to delete ticket');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   return (
     <DispatchBoard
       tickets={tickets}
       onMoveTicket={handleMoveTicket}
+      onDeleteTicket={handleDeleteTicket}
     />
   );
 }

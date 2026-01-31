@@ -1,6 +1,6 @@
 'use client';
 
-import { Phone, MapPin, MoreVertical } from 'lucide-react';
+import { Phone, MapPin, MoreVertical, Trash2 } from 'lucide-react';
 import { Ticket, TicketPriority } from './DispatchBoard';
 import { useState } from 'react';
 
@@ -9,6 +9,7 @@ interface TicketCardProps {
   isDragging?: boolean;
   isMoving?: boolean;
   onStatusChange?: (newStatus: Ticket['status']) => void;
+  onDelete?: (ticketId: string) => void;
   showMobileMenu?: boolean;
   isMobile?: boolean;
 }
@@ -18,6 +19,7 @@ export default function TicketCard({
   isDragging = false,
   isMoving = false,
   onStatusChange,
+  onDelete,
   showMobileMenu = false,
   isMobile = false,
 }: TicketCardProps) {
@@ -88,40 +90,58 @@ export default function TicketCard({
         >
           {ticket.priority}
         </span>
-        {(showMobileMenu || isMobile) && onStatusChange && (
-          <div className="relative">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowMenu(!showMenu);
-              }}
-              className="p-1 hover:bg-[#F1F5F9] rounded"
-            >
-              <MoreVertical className="w-4 h-4 text-[#475569]" />
-            </button>
-            {showMenu && (
-              <div className="absolute right-0 top-8 bg-white border border-[#E2E8F0] rounded-lg shadow-lg z-10 min-w-[160px]">
-                <div className="py-1">
-                  {(['READY', 'DISPATCHED', 'COMPLETED'] as const)
-                    .filter(status => status !== ticket.status)
-                    .map(status => (
-                      <button
-                        key={status}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onStatusChange(status);
-                          setShowMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-[#475569] hover:bg-[#F1F5F9]"
-                      >
-                        Move to {status}
-                      </button>
-                    ))}
-                </div>
+        <div className="relative">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+            className="p-1 hover:bg-[#F1F5F9] rounded"
+          >
+            <MoreVertical className="w-4 h-4 text-[#475569]" />
+          </button>
+          {showMenu && (
+            <div className="absolute right-0 top-8 bg-white border border-[#E2E8F0] rounded-lg shadow-lg z-10 min-w-[160px]">
+              <div className="py-1">
+                {onStatusChange && (['READY', 'DISPATCHED', 'COMPLETED'] as const)
+                  .filter(status => status !== ticket.status)
+                  .map(status => (
+                    <button
+                      key={status}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onStatusChange(status);
+                        setShowMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-[#475569] hover:bg-[#F1F5F9]"
+                    >
+                      Move to {status}
+                    </button>
+                  ))}
+                {onDelete && (
+                  <>
+                    {onStatusChange && (['READY', 'DISPATCHED', 'COMPLETED'] as const).filter(status => status !== ticket.status).length > 0 && (
+                      <div className="border-t border-[#E2E8F0] my-1" />
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('Are you sure you want to delete this ticket? This action cannot be undone.')) {
+                          onDelete(ticket.id);
+                        }
+                        setShowMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-[#DC2626] hover:bg-[#FEE2E2] flex items-center gap-2"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Delete
+                    </button>
+                  </>
+                )}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}

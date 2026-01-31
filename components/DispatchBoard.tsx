@@ -31,6 +31,7 @@ export interface Ticket {
 interface DispatchBoardProps {
   tickets: Ticket[];
   onMoveTicket: (ticketId: string, newStatus: TicketStatus) => Promise<void>;
+  onDeleteTicket?: (ticketId: string) => Promise<void>;
   filterUrgent?: boolean;
 }
 
@@ -40,7 +41,7 @@ const COLUMNS: { id: TicketStatus; title: string; color: string }[] = [
   { id: 'COMPLETED', title: 'Completed', color: '#059669' },
 ];
 
-export default function DispatchBoard({ tickets, onMoveTicket, filterUrgent = false }: DispatchBoardProps) {
+export default function DispatchBoard({ tickets, onMoveTicket, onDeleteTicket, filterUrgent = false }: DispatchBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isMoving, setIsMoving] = useState<string | null>(null);
 
@@ -177,6 +178,7 @@ export default function DispatchBoard({ tickets, onMoveTicket, filterUrgent = fa
                 tickets={columnTickets}
                 isMoving={isMoving}
                 onMoveTicket={handleMoveTicket}
+                onDeleteTicket={onDeleteTicket}
               />
             );
           })}
@@ -200,12 +202,14 @@ function Column({
   tickets,
   isMoving,
   onMoveTicket,
+  onDeleteTicket,
 }: {
   id: TicketStatus;
   title: string;
   tickets: Ticket[];
   isMoving: string | null;
   onMoveTicket: (ticketId: string, newStatus: TicketStatus) => Promise<void>;
+  onDeleteTicket?: (ticketId: string) => Promise<void>;
 }) {
   const ticketIds = tickets.map(t => t.id);
   
@@ -237,6 +241,7 @@ function Column({
               ticket={ticket}
               isMoving={isMoving === ticket.id}
               onStatusChange={(newStatus) => onMoveTicket(ticket.id, newStatus)}
+              onDelete={onDeleteTicket ? () => onDeleteTicket(ticket.id) : undefined}
             />
           ))}
           {tickets.length === 0 && (
@@ -250,7 +255,7 @@ function Column({
   );
 }
 
-function SortableTicketCard({ ticket, isMoving, onStatusChange }: { ticket: Ticket; isMoving: boolean; onStatusChange?: (newStatus: Ticket['status']) => void }) {
+function SortableTicketCard({ ticket, isMoving, onStatusChange, onDelete }: { ticket: Ticket; isMoving: boolean; onStatusChange?: (newStatus: Ticket['status']) => void; onDelete?: () => void }) {
   const {
     attributes,
     listeners,
@@ -276,6 +281,7 @@ function SortableTicketCard({ ticket, isMoving, onStatusChange }: { ticket: Tick
         isDragging={isDragging} 
         isMoving={isMoving}
         onStatusChange={onStatusChange}
+        onDelete={onDelete}
         isMobile={isMobile}
         showMobileMenu={isMobile}
       />

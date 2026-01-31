@@ -117,49 +117,40 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       )
     : { count: 0 };
 
+  // Qualified Leads: Calls with name, phone, and issue (ready to dispatch)
   let leadsCount = 0;
   if (firm) {
-    try {
-      let query = supabase
-        .from('calls')
-        .select('*', { count: 'exact', head: true })
-        .eq('firm_id', (firm as any).id)
-        .or('intake_json->>callerName.not.is.null,intake_json->>full_name.not.is.null');
+    // Fetch all calls and filter for qualified leads
+    // A qualified lead has: name, phone, and issue description
+    let allCallsQuery = supabase
+      .from('calls')
+      .select('intake_json, transcript_text, from_number, started_at')
+      .eq('firm_id', (firm as any).id);
+    
+    allCallsQuery = applyDateFilter(allCallsQuery);
+    const { data: allCalls } = await allCallsQuery;
+    
+    leadsCount = (allCalls || []).filter((call: any) => {
+      const intake = call.intake_json as any;
       
-      query = applyDateFilter(query);
-      const { count, error } = await query;
+      // Check for name (required)
+      const hasName = (intake?.callerName && intake.callerName.trim().length > 0) ||
+                     (intake?.full_name && intake.full_name.trim().length > 0);
       
-      if (error) {
-        let allCallsQuery = supabase
-          .from('calls')
-          .select('intake_json, started_at')
-          .eq('firm_id', (firm as any).id);
-        
-        allCallsQuery = applyDateFilter(allCallsQuery);
-        const { data: allCalls } = await allCallsQuery;
-        
-        leadsCount = (allCalls || []).filter((call: any) => {
-          const intake = call.intake_json as any;
-          return (intake?.callerName && intake.callerName.trim().length > 0) ||
-                 (intake?.full_name && intake.full_name.trim().length > 0);
-        }).length;
-      } else {
-        leadsCount = count || 0;
-      }
-    } catch (err) {
-      let allCallsQuery = supabase
-        .from('calls')
-        .select('intake_json, started_at')
-        .eq('firm_id', (firm as any).id);
+      // Check for phone (required) - from intake or call metadata
+      const hasPhone = (intake?.callerPhone && intake.callerPhone.trim().length > 0) ||
+                       (intake?.callback_number && intake.callback_number.trim().length > 0) ||
+                       (call.from_number && call.from_number.trim().length > 0);
       
-      allCallsQuery = applyDateFilter(allCallsQuery);
-      const { data: allCalls } = await allCallsQuery;
+      // Check for issue (required) - from intake or transcript
+      const hasIssue = (intake?.issueDescription && intake.issueDescription.trim().length > 0) ||
+                       (intake?.issueCategory && intake.issueCategory !== 'Not specified') ||
+                       (intake?.reason_for_call && intake.reason_for_call.trim().length > 0) ||
+                       (call.transcript_text && call.transcript_text.length > 50); // Transcript suggests conversation happened
       
-      leadsCount = (allCalls || []).filter((call: any) => {
-        const intake = call.intake_json as any;
-        return intake?.callerName && intake.callerName.trim().length > 0;
-      }).length;
-    }
+      // Qualified if has name, phone, and issue
+      return hasName && hasPhone && hasIssue;
+    }).length;
   }
 
   let urgentCallsCount = 0;
