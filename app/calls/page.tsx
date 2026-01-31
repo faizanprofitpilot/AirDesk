@@ -17,8 +17,8 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
     return null; // No date filter
   }
 
-  // Custom dates or if start/end are provided directly
-  if (searchParams.period === 'custom' || (searchParams.start && searchParams.end)) {
+  // Custom dates - only if period is explicitly 'custom'
+  if (searchParams.period === 'custom') {
     if (searchParams.start && searchParams.end) {
       return {
         start: new Date(searchParams.start),
@@ -30,7 +30,7 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
 
   // Fallback: calculate from period
   const now = new Date();
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  let end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
   let start: Date;
 
   switch (period) {
@@ -41,6 +41,7 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
       start = new Date(now);
       start.setDate(start.getDate() - 7);
       start.setHours(0, 0, 0, 0);
+      end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
       break;
     case 'month':
       start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
