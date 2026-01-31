@@ -2,15 +2,56 @@ import { createServerClient } from '@/lib/clients/supabase';
 import { redirect } from 'next/navigation';
 import { PlatformLayout } from '@/components/platform-layout';
 import CallsList from '@/components/CallsList';
+import DateFilter from '@/components/DateFilter';
 import Link from 'next/link';
 import { Phone, Filter, Mail } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
+// Helper function to get date range from searchParams
+function getDateRange(searchParams: { period?: string; start?: string; end?: string }) {
+  if (!searchParams.period || searchParams.period === 'all') {
+    return null; // No date filter
+  }
+
+  if (searchParams.start && searchParams.end) {
+    return {
+      start: new Date(searchParams.start),
+      end: new Date(searchParams.end),
+    };
+  }
+
+  // Fallback: calculate from period
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  let start: Date;
+
+  switch (searchParams.period) {
+    case 'today':
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      break;
+    case 'week':
+      start = new Date(now);
+      start.setDate(start.getDate() - 7);
+      start.setHours(0, 0, 0, 0);
+      break;
+    case 'month':
+      start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      break;
+    case 'year':
+      start = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+      break;
+    default:
+      return null;
+  }
+
+  return { start, end };
+}
+
 export default async function CallsPage({
   searchParams,
 }: {
-  searchParams: { status?: string; urgency?: string };
+  searchParams: { status?: string; urgency?: string; period?: string; start?: string; end?: string };
 }) {
   try {
     const supabase = await createServerClient();
@@ -35,6 +76,9 @@ export default async function CallsPage({
 
     const firm = firmData as any;
 
+    // Get date range filter
+    const dateRange = getDateRange(searchParams);
+
     let query = supabase
       .from('calls')
       .select('*')
@@ -43,6 +87,13 @@ export default async function CallsPage({
 
     if (searchParams.status) {
       query = query.eq('status', searchParams.status);
+    }
+
+    // Apply date filter if provided
+    if (dateRange) {
+      query = query
+        .gte('started_at', dateRange.start.toISOString())
+        .lte('started_at', dateRange.end.toISOString());
     }
 
     const { data: calls, error } = await query;
@@ -73,6 +124,9 @@ export default async function CallsPage({
 
                 {/* Right Cluster: Stats + Action */}
                 <div className="flex items-center gap-4 flex-wrap">
+                  {/* Date Filter */}
+                  <DateFilter className="[&_svg]:text-white/80 [&_div]:bg-white/10 [&_div]:border-white/20 [&_button]:text-white/80 [&_button:hover]:bg-white/20 [&_button:hover]:text-white" />
+                  
                   {/* Inline Stat Pills */}
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm">

@@ -178,15 +178,21 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       )
     : { count: 0 };
 
+  // Recent Service Calls - always show today's calls only
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+  
   const { data: recentCallsData } = firm
-    ? await applyDateFilter(
-        supabase
-          .from('calls')
-          .select('*')
-          .eq('firm_id', (firm as any).id)
-          .order('started_at', { ascending: false })
-          .limit(5)
-      )
+    ? await supabase
+        .from('calls')
+        .select('*')
+        .eq('firm_id', (firm as any).id)
+        .gte('started_at', todayStart.toISOString())
+        .lte('started_at', todayEnd.toISOString())
+        .order('started_at', { ascending: false })
+        .limit(5)
     : { data: null };
 
   const recentCalls = (recentCallsData || []) as any[];
@@ -515,18 +521,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                           Recent Service Calls
                         </h2>
                         <p className="text-sm text-blue-100">
-                          Latest customer calls and dispatch tickets
+                          Today's customer calls and dispatch tickets
                         </p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <DateFilter className="[&_svg]:text-white/80 [&_div]:bg-white/10 [&_div]:border-white/20 [&_button]:text-white/80 [&_button:hover]:bg-white/20 [&_button:hover]:text-white" />
-                        <Button 
-                          asChild 
-                          className="h-10 px-5 rounded-lg bg-white text-[#1E40AF] hover:bg-blue-50 font-semibold shadow-lg"
-                        >
-                          <Link href="/calls">View All Calls →</Link>
-                        </Button>
-                      </div>
+                      <Button 
+                        asChild 
+                        className="h-10 px-5 rounded-lg bg-white text-[#1E40AF] hover:bg-blue-50 font-semibold shadow-lg"
+                      >
+                        <Link href="/calls">View All Calls →</Link>
+                      </Button>
                     </div>
                   </div>
                   <div className="divide-y divide-[#E2E8F0]">
