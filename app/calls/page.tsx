@@ -115,19 +115,15 @@ export default async function CallsPage({
           <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] px-6 py-5 text-white shadow-lg">
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between gap-6 flex-wrap">
-                {/* Left Cluster: Title + Subtitle + Date Filter */}
-                <div className="flex items-center gap-4 flex-1 min-w-0 flex-wrap">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Phone className="w-5 h-5 text-white flex-shrink-0" />
-                    <div className="min-w-0">
-                      <h1 className="text-2xl font-bold mb-0.5">Service Calls</h1>
-                      <p className="text-sm text-blue-100/90">
-                        View and manage all incoming HVAC service calls gracefully
-                      </p>
-                    </div>
+                {/* Left Cluster: Title + Subtitle */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Phone className="w-5 h-5 text-white flex-shrink-0" />
+                  <div className="min-w-0">
+                    <h1 className="text-2xl font-bold mb-0.5">Service Calls</h1>
+                    <p className="text-sm text-blue-100/90">
+                      View and manage all incoming HVAC service calls gracefully
+                    </p>
                   </div>
-                  {/* Date Filter */}
-                  <DateFilter className="[&_svg]:text-white/80 [&_div]:bg-white/10 [&_div]:border-white/20 [&_button]:text-white/80 [&_button:hover]:bg-white/20 [&_button:hover]:text-white" />
                 </div>
 
                 {/* Right Cluster: Stats + Action */}
@@ -154,6 +150,19 @@ export default async function CallsPage({
                     View Dispatch Board →
                   </Link>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Section */}
+          <div className="bg-white border-b border-[#E2E8F0] px-6 py-4">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <Filter className="w-4 h-4 text-[#475569]" />
+                  <span className="text-sm font-medium text-[#475569]">Filter by date:</span>
+                </div>
+                <DateFilter />
               </div>
             </div>
           </div>
