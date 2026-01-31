@@ -40,6 +40,19 @@ export default function DateFilter({ className = '' }: DateFilterProps) {
       }
     }
   }, [hasCustomDates, searchParams]);
+  
+  // Set default period to 'today' if none exists (only once on mount)
+  useEffect(() => {
+    const period = searchParams.get('period');
+    if (!period && !hasCustomDates) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('period', 'today');
+      const { start, end } = getDateRange('today');
+      params.set('start', start.toISOString());
+      params.set('end', end.toISOString());
+      router.replace(`?${params.toString()}`);
+    }
+  }, []); // Only run once on mount
 
   // Close picker when clicking outside
   useEffect(() => {
