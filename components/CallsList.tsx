@@ -116,20 +116,8 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
     router.push(`/calls?${newParams.toString()}`);
   };
 
-  // Ensure calls is an array
-  const callsArray = Array.isArray(calls) ? calls : [];
-
-  // Log to verify data is received
-  if (typeof window !== 'undefined') {
-    console.log('[CallsList Client]', {
-      callsPropType: typeof calls,
-      callsIsArray: Array.isArray(calls),
-      callsArrayLength: callsArray.length,
-      statusFilter,
-      urgencyFilter,
-      firstCall: callsArray[0] ? { id: callsArray[0].id, status: callsArray[0].status } : null
-    });
-  }
+  // Ensure calls is an array - handle both server and client side
+  const callsArray = calls && Array.isArray(calls) ? calls : (calls ? [calls] : []);
 
   const filteredCalls = callsArray.filter(call => {
     if (statusFilter && call.status !== statusFilter) {
@@ -142,16 +130,6 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
     }
     return true;
   });
-
-  // Log filtered results
-  if (typeof window !== 'undefined') {
-    console.log('[CallsList Client] Filtered:', {
-      originalCount: callsArray.length,
-      filteredCount: filteredCalls.length,
-      statusFilter,
-      urgencyFilter
-    });
-  }
 
   return (
     <div className="flex flex-col h-full">

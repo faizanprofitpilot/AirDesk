@@ -115,15 +115,6 @@ export default async function CallsPage({
     }
 
     const callsList = (calls || []) as any[];
-    
-    // Log server-side to verify data
-    console.log('[CallsPage Server]', {
-      firmId: firm.id,
-      callsFetched: calls?.length || 0,
-      callsListLength: callsList.length,
-      hasError: !!error,
-      error: error ? JSON.stringify(error) : null
-    });
 
     return (
       <PlatformLayout>
@@ -186,7 +177,7 @@ export default async function CallsPage({
 
           {/* Calls List */}
           <div className="flex-1 overflow-auto">
-            <CallsList calls={callsList} searchParams={searchParams} />
+            <CallsList calls={callsList || []} searchParams={searchParams || {}} />
           </div>
         </div>
       </PlatformLayout>
