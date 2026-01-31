@@ -16,6 +16,17 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
   const [statusFilter, setStatusFilter] = useState(searchParams.status || '');
   const [urgencyFilter, setUrgencyFilter] = useState(searchParams.urgency || '');
 
+  // Debug logging - always show in browser
+  if (typeof window !== 'undefined') {
+    console.log('[CallsList] Props:', {
+      callsCount: calls.length,
+      statusFilter,
+      urgencyFilter,
+      searchParams,
+      firstCall: calls[0] ? { id: calls[0].id, status: calls[0].status, intake: calls[0].intake_json } : null
+    });
+  }
+
   const getStatusBadge = (status: CallStatus) => {
     switch (status) {
       case 'emailed':
@@ -119,10 +130,22 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
   const filteredCalls = calls.filter(call => {
     if (statusFilter && call.status !== statusFilter) return false;
     const intake = call.intake_json as any;
-    const urgency = intake?.urgency || 'normal';
+    const urgency = intake?.urgency || call.urgency || 'normal';
     if (urgencyFilter && urgency !== urgencyFilter) return false;
     return true;
   });
+
+  // Debug logging for filtered results - always show in browser
+  if (typeof window !== 'undefined') {
+    console.log('[CallsList] Filtered:', {
+      originalCount: calls.length,
+      filteredCount: filteredCalls.length,
+      statusFilter,
+      urgencyFilter,
+      allCallsStatuses: calls.map(c => ({ id: c.id, status: c.status, urgency: (c.intake_json as any)?.urgency || c.urgency })),
+      filteredCalls: filteredCalls.map(c => ({ id: c.id, status: c.status }))
+    });
+  }
 
   return (
     <div className="flex flex-col h-full">
