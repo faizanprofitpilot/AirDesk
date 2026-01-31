@@ -116,18 +116,14 @@ export default async function CallsPage({
 
     const callsList = (calls || []) as any[];
     
-    // Debug in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[CallsPage Debug]', {
-        firmId: firm.id,
-        dateRange,
-        period: searchParams.period,
-        status: searchParams.status,
-        callsCount: callsList.length,
-        hasError: !!error,
-        firstCall: callsList[0] ? { id: callsList[0].id, started_at: callsList[0].started_at } : null
-      });
-    }
+    // Log server-side to verify data
+    console.log('[CallsPage Server]', {
+      firmId: firm.id,
+      callsFetched: calls?.length || 0,
+      callsListLength: callsList.length,
+      hasError: !!error,
+      error: error ? JSON.stringify(error) : null
+    });
 
     return (
       <PlatformLayout>

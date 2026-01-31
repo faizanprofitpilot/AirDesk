@@ -16,17 +16,6 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
   const [statusFilter, setStatusFilter] = useState(searchParams.status || '');
   const [urgencyFilter, setUrgencyFilter] = useState(searchParams.urgency || '');
 
-  // Debug logging - always show in browser
-  if (typeof window !== 'undefined') {
-    console.log('[CallsList] Props:', {
-      callsCount: calls.length,
-      statusFilter,
-      urgencyFilter,
-      searchParams,
-      firstCall: calls[0] ? { id: calls[0].id, status: calls[0].status, intake: calls[0].intake_json } : null
-    });
-  }
-
   const getStatusBadge = (status: CallStatus) => {
     switch (status) {
       case 'emailed':
@@ -127,23 +116,40 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
     router.push(`/calls?${newParams.toString()}`);
   };
 
-  const filteredCalls = calls.filter(call => {
-    if (statusFilter && call.status !== statusFilter) return false;
+  // Ensure calls is an array
+  const callsArray = Array.isArray(calls) ? calls : [];
+
+  // Log to verify data is received
+  if (typeof window !== 'undefined') {
+    console.log('[CallsList Client]', {
+      callsPropType: typeof calls,
+      callsIsArray: Array.isArray(calls),
+      callsArrayLength: callsArray.length,
+      statusFilter,
+      urgencyFilter,
+      firstCall: callsArray[0] ? { id: callsArray[0].id, status: callsArray[0].status } : null
+    });
+  }
+
+  const filteredCalls = callsArray.filter(call => {
+    if (statusFilter && call.status !== statusFilter) {
+      return false;
+    }
     const intake = call.intake_json as any;
     const urgency = intake?.urgency || call.urgency || 'normal';
-    if (urgencyFilter && urgency !== urgencyFilter) return false;
+    if (urgencyFilter && urgency !== urgencyFilter) {
+      return false;
+    }
     return true;
   });
 
-  // Debug logging for filtered results - always show in browser
+  // Log filtered results
   if (typeof window !== 'undefined') {
-    console.log('[CallsList] Filtered:', {
-      originalCount: calls.length,
+    console.log('[CallsList Client] Filtered:', {
+      originalCount: callsArray.length,
       filteredCount: filteredCalls.length,
       statusFilter,
-      urgencyFilter,
-      allCallsStatuses: calls.map(c => ({ id: c.id, status: c.status, urgency: (c.intake_json as any)?.urgency || c.urgency })),
-      filteredCalls: filteredCalls.map(c => ({ id: c.id, status: c.status }))
+      urgencyFilter
     });
   }
 
@@ -216,12 +222,12 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
 
       {/* Calls List */}
       <div className="flex-1 overflow-auto bg-[#F1F5F9] p-6">
-        {!filteredCalls || filteredCalls.length === 0 ? (
+        {filteredCalls.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center">
             <Phone className="w-12 h-12 text-[#475569] mx-auto mb-4 opacity-50" />
             <p className="text-sm font-medium text-[#475569] mb-1">No service calls found</p>
             <p className="text-xs text-[#475569] opacity-70">
-              {calls.length === 0 ? 'No calls have been received yet.' : 'Try adjusting your filters.'}
+              {callsArray.length === 0 ? 'No calls have been received yet.' : 'Try adjusting your filters.'}
             </p>
           </div>
         ) : (
