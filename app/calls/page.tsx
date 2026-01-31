@@ -111,9 +111,23 @@ export default async function CallsPage({
 
     if (error) {
       console.error('[CallsPage] Error fetching calls:', error);
+      console.error('[CallsPage] Error details:', JSON.stringify(error, null, 2));
     }
 
-    const callsList = calls || [];
+    const callsList = (calls || []) as any[];
+    
+    // Debug in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[CallsPage Debug]', {
+        firmId: firm.id,
+        dateRange,
+        period: searchParams.period,
+        status: searchParams.status,
+        callsCount: callsList.length,
+        hasError: !!error,
+        firstCall: callsList[0] ? { id: callsList[0].id, started_at: callsList[0].started_at } : null
+      });
+    }
 
     return (
       <PlatformLayout>
