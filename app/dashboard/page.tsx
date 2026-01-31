@@ -176,17 +176,19 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       )
     : { count: 0 };
 
-  // Recent Service Calls - show last 7 days of calls
-  const recentStart = new Date();
-  recentStart.setDate(recentStart.getDate() - 7);
-  recentStart.setHours(0, 0, 0, 0);
+  // Recent Service Calls - always show today's calls only
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
   
   const { data: recentCallsData } = firm
     ? await supabase
         .from('calls')
         .select('*')
         .eq('firm_id', (firm as any).id)
-        .gte('started_at', recentStart.toISOString())
+        .gte('started_at', todayStart.toISOString())
+        .lte('started_at', todayEnd.toISOString())
         .order('started_at', { ascending: false })
         .limit(10)
     : { data: null };
@@ -517,7 +519,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                           Recent Service Calls
                         </h2>
                         <p className="text-sm text-blue-100">
-                          Recent customer calls and dispatch tickets
+                          Today's customer calls and dispatch tickets
                         </p>
                       </div>
                       <Button 
