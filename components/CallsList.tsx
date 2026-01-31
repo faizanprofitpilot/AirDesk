@@ -116,10 +116,11 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
     router.push(`/calls?${newParams.toString()}`);
   };
 
-  // Ensure calls is an array - handle both server and client side
-  const callsArray = calls && Array.isArray(calls) ? calls : (calls ? [calls] : []);
+  // Ensure calls is an array
+  const callsArray = Array.isArray(calls) ? calls : [];
 
   const filteredCalls = callsArray.filter(call => {
+    if (!call || !call.id) return false;
     if (statusFilter && call.status !== statusFilter) {
       return false;
     }

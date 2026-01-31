@@ -114,6 +114,7 @@ export default async function CallsPage({
       console.error('[CallsPage] Error details:', JSON.stringify(error, null, 2));
     }
 
+    // Just pass calls directly - Next.js handles serialization
     const callsList = (calls || []) as any[];
 
     return (
