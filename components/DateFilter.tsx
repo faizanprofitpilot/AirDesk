@@ -20,10 +20,10 @@ export default function DateFilter({ className = '' }: DateFilterProps) {
   const pickerRef = useRef<HTMLDivElement>(null);
   
   // Determine current filter - check if custom dates are set
-  // Default to 'today' if no period is specified
+  // Default to 'all' if no period is specified
   const hasCustomDates = searchParams.get('start') && searchParams.get('end') && 
                          !['today', 'week', 'month', 'year'].includes(searchParams.get('period') || '');
-  const currentFilter = hasCustomDates ? 'custom' : (searchParams.get('period') || 'today') as DateFilterOption;
+  const currentFilter = hasCustomDates ? 'custom' : (searchParams.get('period') || 'all') as DateFilterOption;
   
   // Initialize custom dates from URL if present
   useEffect(() => {
