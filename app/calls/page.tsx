@@ -86,27 +86,31 @@ export default async function CallsPage({
     // Get date range filter
     const dateRange = getDateRange(searchParams);
 
+    // Build query - start with base query
     let query = supabase
       .from('calls')
       .select('*')
-      .eq('firm_id', firm.id)
-      .order('started_at', { ascending: false });
+      .eq('firm_id', firm.id);
 
+    // Apply status filter if provided
     if (searchParams.status) {
       query = query.eq('status', searchParams.status);
     }
 
-    // Apply date filter if provided
+    // Apply date filter if provided (dateRange is null when period is 'all')
     if (dateRange) {
       query = query
         .gte('started_at', dateRange.start.toISOString())
         .lte('started_at', dateRange.end.toISOString());
     }
 
+    // Always order by started_at descending
+    query = query.order('started_at', { ascending: false });
+
     const { data: calls, error } = await query;
 
     if (error) {
-      console.error('Error fetching calls:', error);
+      console.error('[CallsPage] Error fetching calls:', error);
     }
 
     const callsList = calls || [];
