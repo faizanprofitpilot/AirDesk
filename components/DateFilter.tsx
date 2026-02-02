@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Calendar, X } from 'lucide-react';
 
@@ -13,6 +13,7 @@ interface DateFilterProps {
 
 export default function DateFilter({ className = '' }: DateFilterProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [customStart, setCustomStart] = useState('');
@@ -108,7 +109,7 @@ export default function DateFilter({ className = '' }: DateFilterProps) {
     }
 
     setShowCustomPicker(false);
-    router.push(`?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   };
 
 
@@ -131,7 +132,7 @@ export default function DateFilter({ className = '' }: DateFilterProps) {
     params.set('end', endDate.toISOString());
     
     setShowCustomPicker(false);
-    router.push(`?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const handleClearCustom = () => {

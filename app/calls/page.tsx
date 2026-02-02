@@ -65,8 +65,10 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
 export default async function CallsPage({
   searchParams,
 }: {
-  searchParams: { status?: string; urgency?: string; period?: string; start?: string; end?: string };
+  searchParams: Promise<{ status?: string; urgency?: string; period?: string; start?: string; end?: string }> | { status?: string; urgency?: string; period?: string; start?: string; end?: string };
 }) {
+  // Handle both Promise and direct object (Next.js 15+ uses Promise)
+  const params = searchParams instanceof Promise ? await searchParams : searchParams;
   try {
     const supabase = await createServerClient();
     const {
@@ -91,7 +93,7 @@ export default async function CallsPage({
     const firm = firmData as any;
 
     // Get date range filter
-    const dateRange = getDateRange(searchParams);
+    const dateRange = getDateRange(params);
 
     // Build query - start with base query
     let query = supabase
@@ -100,8 +102,8 @@ export default async function CallsPage({
       .eq('firm_id', firm.id);
 
     // Apply status filter if provided
-    if (searchParams.status) {
-      query = query.eq('status', searchParams.status);
+    if (params.status) {
+      query = query.eq('status', params.status);
     }
 
     // Apply date filter if provided (dateRange is null when period is 'all')
@@ -184,7 +186,7 @@ export default async function CallsPage({
 
           {/* Calls List */}
           <div className="flex-1 overflow-auto">
-            <CallsList calls={callsList} searchParams={searchParams || {}} />
+            <CallsList calls={callsList} searchParams={params || {}} />
           </div>
         </div>
       </PlatformLayout>
