@@ -18,14 +18,12 @@ interface DashboardPageProps {
 
 // Helper function to get date range from searchParams
 function getDateRange(searchParams: { period?: string; start?: string; end?: string }) {
-  // Default to 'all' if no period is specified
-  const period = searchParams.period || 'all';
-  
-  if (period === 'all') {
+  // If no period specified, show all (no filter)
+  if (!searchParams.period || searchParams.period === 'all') {
     return null; // No date filter
   }
 
-  // Custom dates - only if period is explicitly 'custom'
+  // Custom dates
   if (searchParams.period === 'custom') {
     if (searchParams.start && searchParams.end) {
       return {
@@ -36,9 +34,8 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
     return null;
   }
   
-  // If start and end are provided for non-custom periods, use them
-  // (This happens when DateFilter sets them)
-  if (searchParams.start && searchParams.end && searchParams.period) {
+  // If start and end are provided in URL, use them (DateFilter sets these)
+  if (searchParams.start && searchParams.end) {
     return {
       start: new Date(searchParams.start),
       end: new Date(searchParams.end),
@@ -50,7 +47,7 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
   const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
   let start: Date;
 
-  switch (period) {
+  switch (searchParams.period) {
     case 'today':
       start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
       break;
