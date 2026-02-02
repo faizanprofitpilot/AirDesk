@@ -20,10 +20,10 @@ export default function DateFilter({ className = '' }: DateFilterProps) {
   const pickerRef = useRef<HTMLDivElement>(null);
   
   // Determine current filter - check if custom dates are set
-  // Default to 'today' if no period is specified
+  // Default to 'all' if no period is specified
   const hasCustomDates = searchParams.get('start') && searchParams.get('end') && 
-                         !['today', 'week', 'month', 'year'].includes(searchParams.get('period') || '');
-  const currentFilter = hasCustomDates ? 'custom' : (searchParams.get('period') || 'today') as DateFilterOption;
+                         !['today', 'week', 'month', 'year', 'all'].includes(searchParams.get('period') || '');
+  const currentFilter = hasCustomDates ? 'custom' : (searchParams.get('period') || 'all') as DateFilterOption;
   
   // Initialize custom dates from URL if present
   useEffect(() => {
@@ -41,18 +41,7 @@ export default function DateFilter({ className = '' }: DateFilterProps) {
     }
   }, [hasCustomDates, searchParams]);
   
-  // Set default period to 'today' if none exists (only once on mount)
-  useEffect(() => {
-    const period = searchParams.get('period');
-    if (!period && !hasCustomDates) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('period', 'today');
-      const { start, end } = getDateRange('today');
-      params.set('start', start.toISOString());
-      params.set('end', end.toISOString());
-      router.replace(`?${params.toString()}`);
-    }
-  }, []); // Only run once on mount
+  // Don't auto-set default - let user choose or server default to 'all'
 
   // Close picker when clicking outside
   useEffect(() => {
