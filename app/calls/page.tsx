@@ -184,7 +184,7 @@ export default async function CallsPage({
 
           {/* Calls List */}
           <div className="flex-1 overflow-auto">
-            <CallsList calls={callsList || []} searchParams={searchParams || {}} />
+            <CallsList calls={callsList} searchParams={searchParams || {}} />
           </div>
         </div>
       </PlatformLayout>

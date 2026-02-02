@@ -130,19 +130,48 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
   // Ensure calls is an array
   const callsArray = Array.isArray(calls) ? calls : [];
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('[CallsList] Component mounted/updated');
+    console.log('[CallsList] calls prop:', calls);
+    console.log('[CallsList] callsArray length:', callsArray.length);
+    console.log('[CallsList] statusFilter:', statusFilter);
+    console.log('[CallsList] urgencyFilter:', urgencyFilter);
+    if (callsArray.length > 0) {
+      console.log('[CallsList] First call:', {
+        id: callsArray[0]?.id,
+        status: callsArray[0]?.status,
+        hasIntake: !!callsArray[0]?.intake_json
+      });
+    }
+  }, [calls, statusFilter, urgencyFilter]);
 
   const filteredCalls = callsArray.filter(call => {
-    if (!call || !call.id) return false;
-    if (statusFilter && call.status !== statusFilter) {
+    if (!call || !call.id) {
+      console.log('[CallsList] Filtered out call - missing id:', call);
       return false;
     }
-    const intake = call.intake_json as any;
-    const urgency = intake?.urgency || call.urgency || 'normal';
-    if (urgencyFilter && urgency !== urgencyFilter) {
+    // Only filter by status if statusFilter is set
+    if (statusFilter && call.status !== statusFilter) {
+      console.log('[CallsList] Filtered out call - status mismatch:', call.id, call.status, 'vs', statusFilter);
       return false;
+    }
+    // Only filter by urgency if urgencyFilter is set
+    if (urgencyFilter) {
+      const intake = call.intake_json as any;
+      const urgency = intake?.urgency || call.urgency || 'normal';
+      if (urgency !== urgencyFilter) {
+        console.log('[CallsList] Filtered out call - urgency mismatch:', call.id, urgency, 'vs', urgencyFilter);
+        return false;
+      }
     }
     return true;
   });
+  
+  useEffect(() => {
+    console.log('[CallsList] filteredCalls length:', filteredCalls.length);
+  }, [filteredCalls.length]);
 
   const handleDelete = async (callId: string) => {
     if (!confirm('Are you sure you want to delete this call record? This action cannot be undone.')) {
