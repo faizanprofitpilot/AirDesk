@@ -13,7 +13,7 @@ import { Ticket } from '@/components/DispatchBoard';
 export const dynamic = 'force-dynamic';
 
 interface DashboardPageProps {
-  searchParams: { period?: string; start?: string; end?: string };
+  searchParams: Promise<{ period?: string; start?: string; end?: string }> | { period?: string; start?: string; end?: string };
 }
 
 // Helper function to get date range from searchParams
@@ -70,6 +70,9 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  // Handle both Promise and direct object (Next.js 15+ uses Promise)
+  const params = searchParams instanceof Promise ? await searchParams : searchParams;
+  
   const supabase = await createServerClient();
   const {
     data: { session },
@@ -102,7 +105,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const firm = firmData || null;
 
   // Get date range filter
-  const dateRange = getDateRange(searchParams);
+  const dateRange = getDateRange(params);
 
   // Helper to apply date filter to a query
   const applyDateFilter = (query: any) => {

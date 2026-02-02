@@ -13,14 +13,35 @@ interface CallsListProps {
 
 export default function CallsList({ calls, searchParams }: CallsListProps) {
   const router = useRouter();
-  const [statusFilter, setStatusFilter] = useState(searchParams.status || '');
+  
+  // Validate status filter - only allow valid CallStatus values
+  const validStatuses = ['emailed', 'in_progress', 'transcribing', 'summarizing', 'sending_email', 'error'];
+  const initialStatus = searchParams.status && validStatuses.includes(searchParams.status) 
+    ? searchParams.status 
+    : '';
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [urgencyFilter, setUrgencyFilter] = useState(searchParams.urgency || '');
   
   // Sync filters with URL params when they change
   useEffect(() => {
-    setStatusFilter(searchParams.status || '');
+    const validStatus = searchParams.status && validStatuses.includes(searchParams.status)
+      ? searchParams.status
+      : '';
+    setStatusFilter(validStatus);
     setUrgencyFilter(searchParams.urgency || '');
-  }, [searchParams.status, searchParams.urgency]);
+    
+    // If URL has invalid status, clear it
+    if (searchParams.status && !validStatuses.includes(searchParams.status)) {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('status');
+      // Preserve other params
+      if (searchParams.period) params.set('period', searchParams.period);
+      if (searchParams.start) params.set('start', searchParams.start);
+      if (searchParams.end) params.set('end', searchParams.end);
+      if (searchParams.urgency) params.set('urgency', searchParams.urgency);
+      router.replace(`/calls?${params.toString()}`);
+    }
+  }, [searchParams.status, searchParams.urgency, router]);
 
   const getStatusBadge = (status: CallStatus) => {
     switch (status) {
@@ -115,46 +136,14 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
     return intake?.issueCategory || 'Not specified';
   };
 
-  const handleFilter = () => {
-    const newParams = new URLSearchParams();
-    // Preserve date filter params
-    if (searchParams.period) newParams.set('period', searchParams.period);
-    if (searchParams.start) newParams.set('start', searchParams.start);
-    if (searchParams.end) newParams.set('end', searchParams.end);
-    // Add status and urgency filters
-    if (statusFilter) newParams.set('status', statusFilter);
-    if (urgencyFilter) newParams.set('urgency', urgencyFilter);
-    router.push(`/calls?${newParams.toString()}`);
-  };
-
   // Ensure calls is an array
   const callsArray = Array.isArray(calls) ? calls : [];
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  
-  // Debug logging
-  useEffect(() => {
-    console.log('[CallsList] Component mounted/updated');
-    console.log('[CallsList] calls prop:', calls);
-    console.log('[CallsList] callsArray length:', callsArray.length);
-    console.log('[CallsList] statusFilter:', statusFilter);
-    console.log('[CallsList] urgencyFilter:', urgencyFilter);
-    if (callsArray.length > 0) {
-      console.log('[CallsList] First call:', {
-        id: callsArray[0]?.id,
-        status: callsArray[0]?.status,
-        hasIntake: !!callsArray[0]?.intake_json
-      });
-    }
-  }, [calls, statusFilter, urgencyFilter]);
 
   const filteredCalls = callsArray.filter(call => {
-    if (!call || !call.id) {
-      console.log('[CallsList] Filtered out call - missing id:', call);
-      return false;
-    }
+    if (!call || !call.id) return false;
     // Only filter by status if statusFilter is set
     if (statusFilter && call.status !== statusFilter) {
-      console.log('[CallsList] Filtered out call - status mismatch:', call.id, call.status, 'vs', statusFilter);
       return false;
     }
     // Only filter by urgency if urgencyFilter is set
@@ -162,16 +151,11 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
       const intake = call.intake_json as any;
       const urgency = intake?.urgency || call.urgency || 'normal';
       if (urgency !== urgencyFilter) {
-        console.log('[CallsList] Filtered out call - urgency mismatch:', call.id, urgency, 'vs', urgencyFilter);
         return false;
       }
     }
     return true;
   });
-  
-  useEffect(() => {
-    console.log('[CallsList] filteredCalls length:', filteredCalls.length);
-  }, [filteredCalls.length]);
 
   const handleDelete = async (callId: string) => {
     if (!confirm('Are you sure you want to delete this call record? This action cannot be undone.')) {
@@ -223,7 +207,22 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
             <select
               id="status"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                const newStatus = e.target.value;
+                setStatusFilter(newStatus);
+                // Update URL immediately when filter changes
+                const params = new URLSearchParams(window.location.search);
+                if (newStatus) {
+                  params.set('status', newStatus);
+                } else {
+                  params.delete('status');
+                }
+                // Preserve date filter params
+                if (searchParams.period) params.set('period', searchParams.period);
+                if (searchParams.start) params.set('start', searchParams.start);
+                if (searchParams.end) params.set('end', searchParams.end);
+                router.push(`/calls?${params.toString()}`);
+              }}
               className="w-full h-11 px-4 rounded-lg border border-[#E2E8F0] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1E40AF] focus:border-transparent"
             >
               <option value="">All Statuses</option>
@@ -244,7 +243,22 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
             <select
               id="urgency"
               value={urgencyFilter}
-              onChange={(e) => setUrgencyFilter(e.target.value)}
+              onChange={(e) => {
+                const newUrgency = e.target.value;
+                setUrgencyFilter(newUrgency);
+                // Update URL immediately when filter changes
+                const params = new URLSearchParams(window.location.search);
+                if (newUrgency) {
+                  params.set('urgency', newUrgency);
+                } else {
+                  params.delete('urgency');
+                }
+                // Preserve date filter params
+                if (searchParams.period) params.set('period', searchParams.period);
+                if (searchParams.start) params.set('start', searchParams.start);
+                if (searchParams.end) params.set('end', searchParams.end);
+                router.push(`/calls?${params.toString()}`);
+              }}
               className="w-full h-11 px-4 rounded-lg border border-[#E2E8F0] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1E40AF] focus:border-transparent"
             >
               <option value="">All Urgency Levels</option>
@@ -252,15 +266,6 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
               <option value="high">High Priority</option>
               <option value="normal">Normal</option>
             </select>
-          </div>
-          <div>
-            <Button 
-              onClick={handleFilter}
-              className="h-11 px-6 rounded-lg font-semibold text-sm bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Apply Filters
-            </Button>
           </div>
         </div>
       </div>
