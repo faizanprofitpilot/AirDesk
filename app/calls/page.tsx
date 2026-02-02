@@ -18,6 +18,8 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
   }
 
   // Custom dates - only if period is explicitly 'custom'
+  // For other periods (today, week, month, year), use the start/end from URL if provided,
+  // otherwise calculate from period
   if (searchParams.period === 'custom') {
     if (searchParams.start && searchParams.end) {
       return {
@@ -26,6 +28,15 @@ function getDateRange(searchParams: { period?: string; start?: string; end?: str
       };
     }
     return null;
+  }
+  
+  // If start and end are provided for non-custom periods, use them
+  // (This happens when DateFilter sets them)
+  if (searchParams.start && searchParams.end && searchParams.period) {
+    return {
+      start: new Date(searchParams.start),
+      end: new Date(searchParams.end),
+    };
   }
 
   // Fallback: calculate from period

@@ -227,12 +227,12 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
 
       {/* Calls List */}
       <div className="flex-1 overflow-auto bg-[#F1F5F9] p-6">
-        {callsArray.length === 0 ? (
+        {filteredCalls.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#E2E8F0] p-12 text-center">
             <Phone className="w-12 h-12 text-[#475569] mx-auto mb-4 opacity-50" />
             <p className="text-sm font-medium text-[#475569] mb-1">No service calls found</p>
             <p className="text-xs text-[#475569] opacity-70">
-              No calls have been received yet.
+              {callsArray.length === 0 ? 'No calls have been received yet.' : 'Try adjusting your filters.'}
             </p>
           </div>
         ) : (
