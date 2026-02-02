@@ -4,17 +4,23 @@ import { useRouter } from 'next/navigation';
 import { Call, CallStatus, UrgencyLevel } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Phone, Clock, AlertCircle, CheckCircle2, Mail, Filter, Search, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface CallsListProps {
   calls: Call[];
-  searchParams: { status?: string; urgency?: string };
+  searchParams: { status?: string; urgency?: string; period?: string; start?: string; end?: string };
 }
 
 export default function CallsList({ calls, searchParams }: CallsListProps) {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState(searchParams.status || '');
   const [urgencyFilter, setUrgencyFilter] = useState(searchParams.urgency || '');
+  
+  // Sync filters with URL params when they change
+  useEffect(() => {
+    setStatusFilter(searchParams.status || '');
+    setUrgencyFilter(searchParams.urgency || '');
+  }, [searchParams.status, searchParams.urgency]);
 
   const getStatusBadge = (status: CallStatus) => {
     switch (status) {
@@ -111,6 +117,11 @@ export default function CallsList({ calls, searchParams }: CallsListProps) {
 
   const handleFilter = () => {
     const newParams = new URLSearchParams();
+    // Preserve date filter params
+    if (searchParams.period) newParams.set('period', searchParams.period);
+    if (searchParams.start) newParams.set('start', searchParams.start);
+    if (searchParams.end) newParams.set('end', searchParams.end);
+    // Add status and urgency filters
     if (statusFilter) newParams.set('status', statusFilter);
     if (urgencyFilter) newParams.set('urgency', urgencyFilter);
     router.push(`/calls?${newParams.toString()}`);
