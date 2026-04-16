@@ -1,0 +1,43 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+  display: 'swap',
+  fallback: ['system-ui', 'arial'],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: 'swap',
+  fallback: ['monospace'],
+});
+
+export const metadata: Metadata = {
+  title: "AirDesk - AI Phone Receptionist for HVAC",
+  description: "Never miss an HVAC call again. AirDesk answers 24/7 and emails you a dispatch-ready ticket.",
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+    shortcut: '/favicon.png',
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
+  );
+}
